@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Inkescape (Responsive)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKEjQu-inCf7vAs7oqY0OrNUoELQfhYSWYcsRlwxEhcvyh2RoX6eGgh_4&s=10" sizes="16x16" type="image/png" />  
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+margin:0;
+display:flex;
+height:100vh;
+font-family:system-ui;
+background:#0f0f13;
+color:white;
+overflow:auto;
+user-select: none;
+  -webkit-user-select: none;
+}
+
+.sidebar{
+width:260px;
+background:linear-gradient(180deg,#18181f,#0f0f13);
+padding:12px;
+overflow-y:auto;
+border-right:1px solid #222;
+}
+
+.section{margin-bottom:16px}
+.section h3{margin:8px 0;font-size:13px;color:#aaa}
+
+button, input{
+width:100%;
+padding:10px;
+margin-bottom:8px;
+border:none;
+border-radius:10px;
+background:#1f1f2a;
+color:white;
+}
+
+button:active{transform:scale(0.97)}
+
+#canvasWrap{flex:1;position:relative;background:#111}
+canvas{position:absolute;top:0;left:0;background:white}
+
+.topbar{
+position:absolute;top:0;left:0;right:0;height:50px;
+background:rgba(20,20,30,0.8);
+display:flex;align-items:center;gap:6px;
+padding:0 10px;backdrop-filter:blur(10px);
+border-bottom:1px solid #222;z-index:10;
+}
+
+.topbar button{width:auto;padding:6px 10px}
+
+.layerPanel{
+position:absolute;right:10px;top:60px;width:180px;
+background:#1a1a22;padding:8px;border-radius:12px;
+box-shadow:0 0 10px rgba(0,0,0,0.5);
+}
+
+.layerItem{padding:6px;border-radius:6px;background:#222;margin-bottom:5px}
+.layerItem.active{background:#3a3aff}
+
+/* 📱 モバイル最適化 */
+@media (max-width: 768px){
+body{flex-direction:column}
+
+.sidebar{
+position:absolute;
+bottom:0;
+left:0;
+right:0;
+width:100%;
+height:140px;
+display:flex;
+overflow-x:auto;
+overflow-y:hidden;
+border-right:none;
+border-top:1px solid #222;
+}
+
+.section{
+min-width:140px;
+padding-right:10px;
+}
+
+#canvasWrap{flex:1}
+
+.layerPanel{
+right:5px;
+top:55px;
+width:140px;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<div class="section">
+<h3>ツール</h3>
+<button onclick="setTool('select')">選択</button>
+<button onclick="setTool('pen')">ペン</button>
+<button onclick="setTool('line')">直線</button>
+<button onclick="setTool('rect')">四角</button>
+<button onclick="setTool('circle')">円</button>
+</div>
+
+<div class="section">
+<h3>スタイル</h3>
+<input type="color" id="color" value="#000000">
+<input type="range" id="size" min="1" max="20" value="2">
+</div>
+
+<div class="section">
+<h3>操作</h3>
+<button onclick="undo()">Undo</button>
+<button onclick="redo()">Redo</button>
+<button onclick="saveSVG()">SVG保存</button>
+</div>
+
+</div>
+
+<div id="canvasWrap">
+
+<div class="topbar">
+<button onclick="zoom(1.1)">＋</button>
+<button onclick="zoom(0.9)">－</button>
+<button onclick="resetView()">リセット</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div class="layerPanel">
+<div id="layers"></div>
+<button onclick="addLayer()">＋レイヤー</button>
+</div>
+
+</div>
+
+<script>
+const canvas=document.getElementById("canvas")
+const ctx=canvas.getContext("2d")
+
+function resize(){
+canvas.width=window.innerWidth-(window.innerWidth<768?0:260)
+canvas.height=window.innerHeight
+redraw()
+}
+window.onresize=resize
+resize()
+
+let scale=1,offsetX=0,offsetY=0
+let tool="pen"
+let drawing=false
+let startX,startY
+
+let layers=[[]]
+let currentLayer=0
+
+let history=[]
+let redoStack=[]
+
+function setTool(t){tool=t}
+function zoom(f){scale*=f;redraw()}
+function resetView(){scale=1;offsetX=0;offsetY=0;redraw()}
+
+function addLayer(){layers.push([]);currentLayer=layers.length-1;renderLayers()}
+
+function renderLayers(){
+let div=document.getElementById("layers")
+div.innerHTML=""
+layers.forEach((l,i)=>{
+let el=document.createElement("div")
+el.className="layerItem"+(i===currentLayer?" active":"")
+el.textContent="Layer "+i
+el.onclick=()=>{currentLayer=i;renderLayers();redraw()}
+div.appendChild(el)
+})
+}
+
+function getPos(e){
+if(e.touches){
+return {
+x:(e.touches[0].clientX-offsetX)/scale,
+y:(e.touches[0].clientY-offsetY)/scale
+}
+}
+return {
+x:(e.offsetX-offsetX)/scale,
+y:(e.offsetY-offsetY)/scale
+}
+}
+
+function start(e){
+drawing=true
+let p=getPos(e)
+startX=p.x
+startY=p.y
+}
+
+function move(e){
+if(!drawing)return
+let p=getPos(e)
+if(tool==="pen"){
+addShape({type:"line",x1:startX,y1:startY,x2:p.x,y2:p.y})
+startX=p.x;startY=p.y
+redraw()
+}
+}
+
+function end(e){
+drawing=false
+let p=getPos(e)
+if(tool==="line") addShape({type:"line",x1:startX,y1:startY,x2:p.x,y2:p.y})
+if(tool==="rect") addShape({type:"rect",x:startX,y:startY,w:p.x-startX,h:p.y-startY})
+if(tool==="circle"){
+let r=Math.hypot(p.x-startX,p.y-startY)
+addShape({type:"circle",x:startX,y:startY,r})
+}
+redraw()
+}
+
+canvas.onmousedown=start
+canvas.onmousemove=move
+canvas.onmouseup=end
+
+canvas.ontouchstart=start
+canvas.ontouchmove=e=>{e.preventDefault();move(e)}
+canvas.ontouchend=end
+
+function addShape(shape){
+shape.color=document.getElementById("color").value
+shape.size=document.getElementById("size").value
+layers[currentLayer].push(shape)
+
+history.push(JSON.stringify(layers))
+redoStack=[]
+}
+
+function redraw(){
+ctx.setTransform(1,0,0,1,0,0)
+ctx.clearRect(0,0,canvas.width,canvas.height)
+ctx.setTransform(scale,0,0,scale,offsetX,offsetY)
+
+layers.forEach(layer=>{
+layer.forEach(s=>{
+ctx.strokeStyle=s.color
+ctx.lineWidth=s.size
+
+if(s.type==="line"){
+ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke()
+}
+if(s.type==="rect"){
+ctx.strokeRect(s.x,s.y,s.w,s.h)
+}
+if(s.type==="circle"){
+ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.stroke()
+}
+})
+})
+}
+
+function undo(){
+if(history.length<2)return
+redoStack.push(history.pop())
+layers=JSON.parse(history[history.length-1])
+redraw()
+}
+
+function redo(){
+if(redoStack.length===0)return
+let state=redoStack.pop()
+history.push(state)
+layers=JSON.parse(state)
+redraw()
+}
+
+function saveSVG(){
+let svg='<svg xmlns="http://www.w3.org/2000/svg">'
+
+layers.forEach(layer=>{
+layer.forEach(s=>{
+if(s.type==="line") svg+=`<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" stroke="${s.color}" stroke-width="${s.size}"/>`
+if(s.type==="rect") svg+=`<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="none" stroke="${s.color}" stroke-width="${s.size}"/>`
+if(s.type==="circle") svg+=`<circle cx="${s.x}" cy="${s.y}" r="${s.r}" fill="none" stroke="${s.color}" stroke-width="${s.size}"/>`
+})
+})
+
+svg+='</svg>'
+
+let blob=new Blob([svg],{type:"image/svg+xml"})
+let a=document.createElement("a")
+a.href=URL.createObjectURL(blob)
+a.download="responsive_drawing.svg"
+a.click()
+}
+
+renderLayers()
+</script>
+
+</body>
+</html>
