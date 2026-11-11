@@ -1024,8 +1024,16 @@ function pointerDown(e){
       }else if(!selectedObjects.has(target)||selectedObjects.size>1){
         select(target);
       }
-      const targets=getSelectedObjects();
-      drag={type:"object",x:p.x,y:p.y,items:targets.map(el=>({el,oldTransform:el.getAttribute("transform")||""}))};
+      // 選択中のオブジェクトをひとまとまりとして移動する。
+      // 親グループとその子が同時選択されている場合は、二重移動を防ぐため親だけを動かす。
+      const selectedNow=getSelectedObjects();
+      const targets=selectedNow.filter(el=>!selectedNow.some(other=>other!==el&&other.contains(el)));
+      drag={type:"object",x:p.x,y:p.y,items:targets.map(el=>({
+        el,
+        oldTransform:el.getAttribute("transform")||"",
+        parentCTM:el.parentElement?.getCTM?.()||svg.getCTM()
+      }))};
+      if(selectedNow.length>1)$("statusText").textContent=`${selectedNow.length}個のオブジェクトをまとめて移動`;
       svg.setPointerCapture(e.pointerId);
     }else if(editorMode==="OBJECT"){
       // 空白からドラッグすると範囲選択。Shift併用時は既存選択に追加する。
@@ -1108,7 +1116,14 @@ function pointerMove(e){
   }
   if(drag&&drag.type==="object"){
     const dx=p.x-drag.x,dy=p.y-drag.y;
-    drag.items.forEach(item=>item.el.setAttribute("transform",`translate(${dx} ${dy}) ${item.oldTransform}`.trim()));
+    drag.items.forEach(item=>{
+      // SVGルート座標の移動量を各オブジェクトの親座標へ変換する。
+      // これにより拡大・回転されたレイヤー内でも複数選択がずれずに移動する。
+      const inv=item.parentCTM?.inverse?.();
+      const localX=inv?inv.a*dx+inv.c*dy:dx;
+      const localY=inv?inv.b*dx+inv.d*dy:dy;
+      item.el.setAttribute("transform",`translate(${localX} ${localY}) ${item.oldTransform}`.trim());
+    });
     return;
   }
   if(nodeDrag&&selected){
