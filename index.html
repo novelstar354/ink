@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -49,14 +50,62 @@ overflow:auto;padding:11px}
 .panel-title{font-weight:bold;font-size:14px;margin:5px 0 12px}
 .section{border-top:1px solid var(--line);padding:11px 0}
 .section h3{font-size:12px;color:var(--muted);margin:0 0 9px}
-.field{display:flex;align-items:center;gap:7px;margin:7px 0}
-.field label{width:65px;color:var(--muted);flex-shrink:0}
-.field input[type=color]{width:43px;height:27px;padding:1px}
-.field input[type=number],.field input[type=text],.field select{
-min-width:0;flex:1;width:100%;background:#202124;color:white;
-border:1px solid var(--line);border-radius:3px;padding:5px}
-.field input[type=range]{flex:1;min-width:0}
-.field span{min-width:35px;text-align:right;color:var(--muted)}
+/* 設定項目をすべて縦並びにする */
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin: 12px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field label {
+  display: block;
+  width: 100%;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.field input[type=color] {
+  width: 100%;
+  height: 34px;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.field input[type=number],
+.field input[type=text],
+.field select,
+.field textarea {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: #202124;
+  color: white;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 7px;
+}
+
+.field input[type=range] {
+  width: 100%;
+  min-width: 0;
+}
+
+.field span {
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  color: var(--muted);
+}
+
+/* モディファイアー内も縦並び */
+.modifier-card .field label {
+  width: 100%;
+}
 .full{width:100%}
 .row-buttons{display:flex;gap:5px}
 .row-buttons button{flex:1}
@@ -249,7 +298,55 @@ border:1px solid var(--line);color:white}
 .properties-tab-pane>.section:first-child{border-top:0;padding-top:3px;}
 .properties-tab-pane .section{padding:10px 0;}
 @media(max-width:800px){.properties-tabs{width:62px;flex-basis:62px;padding:5px 3px}.properties-tab{min-height:48px;font-size:9px}.properties-content{padding:7px;}}
+/* キャンバス移動 */
+.canvas-area.pan-mode {
+  cursor: grab;
+}
 
+.canvas-area.pan-mode:active {
+  cursor: grabbing;
+}
+
+.canvas-area.pan-mode #svg {
+  cursor: grab;
+}
+/* モディファイアー専用フォルダ */
+.modifier-tree-folder{
+  background:#303641;
+  border-color:#52657b;
+  margin-top:3px;
+}
+
+.modifier-tree-folder .layer-name{
+  color:#c5d9ef;
+  font-weight:bold;
+}
+
+.modifier-tree-items{
+  margin-left:15px;
+  border-left:1px solid #52657b;
+}
+
+.modifier-tree-item{
+  background:#222830;
+  border-color:#39434f;
+  cursor:pointer;
+}
+
+.modifier-tree-item:hover{
+  background:#34485d;
+  border-color:#579bd7;
+}
+
+.modifier-tree-item .layer-name{
+  color:#d5dce5;
+  cursor:pointer;
+}
+
+.modifier-card-active{
+  border-color:#579bd7;
+  background:#293747;
+}
 </style>
 </head>
 <body>
@@ -269,7 +366,7 @@ border:1px solid var(--line);color:white}
       <button onclick="groupSelected();closeAppMenus()">グループ化</button><button onclick="ungroupSelected();closeAppMenus()">グループ解除</button><button onclick="duplicateSelected();closeAppMenus()">複製</button><button onclick="deleteSelected();closeAppMenus()">削除</button>
     </div></div>
     <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="modifierAppMenu">モディファイアー</button><div class="app-menu" id="modifierAppMenu">
-      <button onclick="addModifier('blur');closeAppMenus()">ぼかしを追加</button><button onclick="addModifier('shadow');closeAppMenus()">ドロップシャドウを追加</button><button onclick="addModifier('grayscale');closeAppMenus()">グレースケールを追加</button><button onclick="addModifier('hue');closeAppMenus()">色相回転を追加</button><hr><button onclick="addModifier('mirror');closeAppMenus()">ミラー</button><button onclick="addModifier('array');closeAppMenus()">配列</button><button onclick="addModifier('bevel');closeAppMenus()">ベベル風</button><button onclick="addModifier('outline');closeAppMenus()">アウトライン</button><button onclick="focusModifierPanel();closeAppMenus()">モディファイアーパネルを表示</button>
+      <button onclick="addModifier('blur');closeAppMenus()">ぼかしを追加</button><button onclick="addModifier('shadow');closeAppMenus()">ドロップシャドウを追加</button><button onclick="addModifier('grayscale');closeAppMenus()">グレースケールを追加</button><button onclick="addModifier('hue');closeAppMenus()">色相回転を追加</button><hr><button onclick="addModifier('mirror');closeAppMenus()">ミラー</button><button onclick="addModifier('array');closeAppMenus()">配列</button><button onclick="addModifier('bevel');closeAppMenus()">ベベル</button><button onclick="addModifier('outline');closeAppMenus()">アウトライン</button><button onclick="focusModifierPanel();closeAppMenus()">モディファイアーパネルを表示</button>
     </div></div>
     <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="viewMenu">表示</button><div class="app-menu" id="viewMenu">
       <button onclick="$('layoutPreset').value='standard';applyLayoutPreset();closeAppMenus()">標準レイアウト</button><button onclick="$('layoutPreset').value='canvas';applyLayoutPreset();closeAppMenus()">キャンバス重視</button><button onclick="$('layoutPreset').value='properties';applyLayoutPreset();closeAppMenus()">プロパティ重視</button><button onclick="$('layoutPreset').value='outliner';applyLayoutPreset();closeAppMenus()">アウトライナー重視</button>
@@ -357,6 +454,61 @@ border:1px solid var(--line);color:white}
   <div class="field">
     <label>名前</label>
     <input type="text" id="objectName" placeholder="オブジェクト名">
+      
+<div class="section" id="textProperties" hidden>
+  <h3>テキスト設定</h3>
+
+  <div class="field">
+    <label>内容</label>
+    <textarea id="textContent" rows="4"
+      placeholder="テキストを入力"></textarea>
+  </div>
+
+  <div class="field">
+    <label>フォント</label>
+    <select id="textFont">
+      <option value="sans-serif">Sans Serif</option>
+      <option value="serif">Serif</option>
+      <option value="monospace">Monospace</option>
+      <option value="Arial">Arial</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Noto Sans JP">Noto Sans JP</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>サイズ</label>
+    <input type="number" id="textSize" min="1" max="1000" value="32">
+  </div>
+
+  <div class="field">
+    <label>太さ</label>
+    <select id="textWeight">
+      <option value="400">標準</option>
+      <option value="500">中太</option>
+      <option value="700">太字</option>
+      <option value="900">極太</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>スタイル</label>
+    <select id="textStyle">
+      <option value="normal">標準</option>
+      <option value="italic">斜体</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>配置</label>
+    <select id="textAlign">
+      <option value="start">左揃え</option>
+      <option value="middle">中央揃え</option>
+      <option value="end">右揃え</option>
+    </select>
+  </div>
+</div>
+
   </div>
 </div>
   <div class="section">
@@ -451,7 +603,7 @@ border:1px solid var(--line);color:white}
 </div>
   <div class="section" id="modifierPanel">
     <h3>モディファイアー</h3>
-    <div class="field"><label>追加</label><select id="modifierType"><option value="blur">ぼかし</option><option value="shadow">ドロップシャドウ</option><option value="grayscale">グレースケール</option><option value="hue">色相回転</option><option value="mirror">ミラー</option><option value="array">配列</option><option value="bevel">ベベル風</option><option value="outline">アウトライン</option></select></div>
+    <div class="field"><label>追加</label><select id="modifierType"><option value="blur">ぼかし</option><option value="shadow">ドロップシャドウ</option><option value="grayscale">グレースケール</option><option value="hue">色相回転</option><option value="mirror">ミラー</option><option value="array">配列</option><option value="bevel">ベベル</option><option value="outline">アウトライン</option></select></div>
     <button class="full" type="button" onclick="addModifierFromPanel()">モディファイアーを追加</button>
     <div id="modifierList" class="modifier-list"><div class="modifier-empty">オブジェクトを選択して追加してください。</div></div>
   </div>
@@ -512,10 +664,13 @@ const svg=$("svg"),objects=$("objects"),defs=$("defs"),overlay=$("overlay");
 let tool="select",selected=null,drawing=false,preview=null;
 let editorMode="OBJECT";
 let selectedObjects=new Set();
+// アウトライナーで選択中のモディファイアー
+let activeModifierIndex = null;
 let start=null,points=[],drag=null,nodeDrag=null;
 let marqueeRect=null,marqueeBase=new Set();
 let zoom=1,history=[],historyIndex=-1,objectCounter=0;
 let textPosition=null;
+let editingText=null;
 let activeLayer=null;
 let layers=[];
 $("objectName").addEventListener("change", () => {
@@ -531,8 +686,15 @@ $("objectName").addEventListener("change", () => {
 
   selected.dataset.name = name;
 
-  updateLayers();
-  snapshot();
+// モディファイアー専用フォルダの名前も変更
+const parent = selected.parentElement;
+
+if (parent?.dataset.modifierFolder === "true") {
+  parent.dataset.name = name;
+}
+
+updateLayers();
+snapshot();
 });
 /* =====================================
    Inkescape 自動保存・復元
@@ -552,7 +714,8 @@ function saveDrawing() {
       viewBox: svg.getAttribute("viewBox"),
       pageWidth: $("stage").style.width,
       pageHeight: $("stage").style.height,
-      savedAt: new Date().toISOString()
+zoom: zoom,
+savedAt: new Date().toISOString()
     };
 
     localStorage.setItem(
@@ -595,7 +758,16 @@ function loadDrawing() {
       $("stage").style.height = data.pageHeight;
       $("pageH").value = parseInt(data.pageHeight) || 650;
     }
+// 保存されていた拡大率を復元
+zoom = Math.max(
+  0.2,
+  Math.min(3, Number(data.zoom) || 1)
+);
 
+$("stage").style.transform =
+  `translate(-50%, -50%) scale(${zoom})`;
+
+$("zoom").value = Math.round(zoom * 100) + "%";
     selected = null;
     overlay.innerHTML = "";
 
@@ -892,9 +1064,10 @@ window.addEventListener("resize",scheduleNodeOverlayRefresh);
 
 function updateProperties(){
   if(!selected){
-    $("objectName").value="";
-    return;
-  }
+  $("objectName").value="";
+  updateTextProperties();
+  return;
+}
   $("objectName").value = selectedObjects.size>1 ? `${selectedObjects.size}個を選択中` : (selected.dataset.name || selected.tagName);
   const fill=selected.getAttribute("fill");
   const stroke=selected.getAttribute("stroke");
@@ -919,7 +1092,62 @@ function updateProperties(){
     $("objW").value=Math.round(b.width);
     $("objH").value=Math.round(b.height);
   }catch{}
+      updateTextProperties();
 }
+
+function updateTextProperties(){
+  const panel=$("textProperties");
+
+  const isText=
+    selected &&
+    selected.tagName.toLowerCase()==="text" &&
+    selectedObjects.size===1;
+
+  panel.hidden=!isText;
+
+  if(!isText)return;
+
+  $("textContent").value=selected.textContent||"";
+  $("textFont").value=selected.getAttribute("font-family")||"sans-serif";
+  $("textSize").value=selected.getAttribute("font-size")||32;
+  $("textWeight").value=selected.getAttribute("font-weight")||"400";
+  $("textStyle").value=selected.getAttribute("font-style")||"normal";
+  $("textAlign").value=selected.getAttribute("text-anchor")||"start";
+}
+
+function applyTextProperty(id,attribute){
+  if(!selected || selected.tagName.toLowerCase()!=="text")return;
+
+  const value=$(id).value;
+
+  if(id==="textContent"){
+    selected.textContent=value;
+  }else{
+    selected.setAttribute(attribute,value);
+  }
+
+  if(typeof renderTimeline==="function")renderTimeline();
+}
+
+[
+  ["textContent",null],
+  ["textFont","font-family"],
+  ["textSize","font-size"],
+  ["textWeight","font-weight"],
+  ["textStyle","font-style"],
+  ["textAlign","text-anchor"]
+].forEach(([id,attribute])=>{
+  $(id).addEventListener("input",()=>{
+    applyTextProperty(id,attribute);
+  });
+
+  $(id).addEventListener("change",()=>{
+    if(selected && selected.tagName.toLowerCase()==="text"){
+      snapshot();
+    }
+  });
+});
+
 function applyPaletteColor(color){
   $("fill").value=color;
   fillEnabled=true;
@@ -1006,8 +1234,28 @@ function pointerDown(e){
   const p=point(e);
   const target=e.target.closest("[data-id]");
 
-  if(tool==="text"){openText(p);return}
-  if(tool==="hand")return;
+  if(tool==="text"){
+  openText(p);
+  return;
+}
+
+if(tool==="hand"){
+  const area=$("canvasArea");
+
+  drag={
+    type:"hand",
+    startX:e.clientX,
+    startY:e.clientY,
+    scrollLeft:area.scrollLeft,
+    scrollTop:area.scrollTop
+  };
+
+  area.classList.add("pan-mode");
+
+  svg.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  return;
+}
 
   if(tool==="select"){
     if(target&&objects.contains(target)){
@@ -1105,6 +1353,15 @@ function pointerDown(e){
 }
 
 function pointerMove(e){
+    // キャンバス移動
+if(drag && drag.type==="hand"){
+  const area=$("canvasArea");
+
+  area.scrollLeft=drag.scrollLeft-(e.clientX-drag.startX);
+  area.scrollTop=drag.scrollTop-(e.clientY-drag.startY);
+
+  return;
+}
   const p=point(e);
   if(drag&&drag.type==="marquee"){
     const x=Math.min(drag.x,p.x),y=Math.min(drag.y,p.y);
@@ -1162,6 +1419,12 @@ function pointerMove(e){
   }
 }
 function pointerUp(){
+    // キャンバス移動終了
+if(drag && drag.type==="hand"){
+  drag=null;
+  $("canvasArea").classList.remove("pan-mode");
+  return;
+}
   if(drag&&drag.type==="marquee"){
     const box=marqueeRect?{
       x:Number(marqueeRect.getAttribute("x")),y:Number(marqueeRect.getAttribute("y")),
@@ -1228,8 +1491,25 @@ function finishPath(){
   preview=null;points=[];
   snapshot();
 }
-svg.addEventListener("dblclick",()=>{
-  if(tool==="polyline"||tool==="bezier")finishPath();
+svg.addEventListener("dblclick",e=>{
+  // ポリライン・ベジェ曲線の確定
+  if(tool==="polyline"||tool==="bezier"){
+    finishPath();
+    return;
+  }
+
+  if(tool==="select" && editorMode==="OBJECT"){
+  const target=e.target.closest("text[data-id]");
+
+  if(target && objects.contains(target)){
+    e.preventDefault();
+    e.stopPropagation();
+
+    select(target);
+    updateTextProperties();
+    $("textContent").focus();
+  }
+}
 });
 function cancelPath(){
   if(preview){preview.remove();preview=null;points=[];drawing=false}
@@ -1306,7 +1586,7 @@ document.querySelectorAll(".app-menu-trigger").forEach(btn=>btn.addEventListener
 // 横スクロール中にメニューがずれないよう、開いているメニューは閉じる
 $(".topbar")?.addEventListener("scroll",closeAppMenus,{passive:true});
 document.addEventListener("click",e=>{if(!e.target.closest(".app-menu-wrap"))closeAppMenus();});
-const MODIFIER_NAMES={blur:"ぼかし",shadow:"ドロップシャドウ",grayscale:"グレースケール",hue:"色相回転",mirror:"ミラー",array:"配列",bevel:"ベベル風",outline:"アウトライン"};
+const MODIFIER_NAMES={blur:"ぼかし",shadow:"ドロップシャドウ",grayscale:"グレースケール",hue:"色相回転",mirror:"ミラー",array:"配列",bevel:"ベベル",outline:"アウトライン"};
 function getModifiers(el){try{return JSON.parse(el?.dataset.modifiers||"[]");}catch{return [];}}
 function clearModifierClones(el){
   const id=el?.dataset.id;if(!id||!el.parentNode)return;
@@ -1358,12 +1638,81 @@ function applyModifiers(el){
     if(el.tagName.toLowerCase()==="rect"){if(el.dataset.baseRx!==undefined){el.setAttribute("rx",el.dataset.baseRx);delete el.dataset.baseRx;}if(el.dataset.baseRy!==undefined){el.setAttribute("ry",el.dataset.baseRy);delete el.dataset.baseRy;}}
   }
 }
-function addModifier(type){
-  const targets=getSelectedObjects().filter(el=>el.dataset.layerRoot!=="true"&&el.dataset.folder!=="true");
-  if(!targets.length){$("statusText").textContent="モディファイアーを追加するオブジェクトを選択してください";return;}
-  targets.forEach(el=>{const mods=getModifiers(el);mods.push({type,value:type==="blur"?3:type==="hue"?90:type==="bevel"?8:1,x:24,y:0,count:3,axis:"x",color:"#000000",opacity:0.45,enabled:true});el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});
-  renderModifierList();snapshot();
+
+// モディファイアー専用フォルダを自動作成
+function ensureModifierFolder(el) {
+  const currentParent = el.parentElement;
+
+  // すでに専用フォルダに入っていれば再利用
+  if (currentParent?.dataset.modifierFolder === "true") {
+    currentParent.dataset.name =
+      el.dataset.name || el.tagName.toLowerCase();
+    return currentParent;
+  }
+
+  const folder = document.createElementNS(
+    svg.namespaceURI,
+    "g"
+  );
+
+  const name = el.dataset.name || el.tagName.toLowerCase();
+
+  folder.dataset.id = "modifier-folder-" + (++objectCounter);
+  folder.dataset.name = name;
+  folder.dataset.folder = "true";
+  folder.dataset.modifierFolder = "true";
+  folder.dataset.collapsed = "false";
+  folder.dataset.layer = el.dataset.layer || activeLayer || "default";
+
+  // 元の位置にフォルダを作り、オブジェクトを格納
+  currentParent.insertBefore(folder, el);
+  folder.appendChild(el);
+
+  return folder;
 }
+
+function addModifier(type) {
+  const targets = getSelectedObjects().filter(el =>
+    el.dataset.layerRoot !== "true" &&
+    el.dataset.folder !== "true"
+  );
+
+  if (!targets.length) {
+    $("statusText").textContent =
+      "モディファイアーを追加するオブジェクトを選択してください";
+    return;
+  }
+
+  targets.forEach(el => {
+    // 初回だけ専用フォルダを作成
+    ensureModifierFolder(el);
+
+    const mods = getModifiers(el);
+
+    mods.push({
+      type,
+      value:
+        type === "blur" ? 3 :
+        type === "hue" ? 90 :
+        type === "bevel" ? 8 : 1,
+      x: 24,
+      y: 0,
+      count: 3,
+      axis: "x",
+      color: "#000000",
+      opacity: 0.45,
+      enabled: true
+    });
+
+    el.dataset.modifiers = JSON.stringify(mods);
+    applyModifiers(el);
+  });
+
+  renderModifierList();
+  updateLayers();
+  snapshot();
+}
+
 function addModifierFromPanel(){addModifier($("modifierType").value);}
 function updateModifier(index,key,value){getSelectedObjects().forEach(el=>{const mods=getModifiers(el);if(!mods[index])return;mods[index][key]=value;el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});renderModifierList();snapshot();}
 function removeModifier(index){getSelectedObjects().forEach(el=>{const mods=getModifiers(el);mods.splice(index,1);el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});renderModifierList();snapshot();}
@@ -1372,7 +1721,13 @@ function renderModifierList(){
   if(!targets.length){host.innerHTML='<div class="modifier-empty">オブジェクトを選択すると、追加した効果がここに表示されます。</div>';return;}
   const mods=getModifiers(selected);if(!mods.length){host.innerHTML='<div class="modifier-empty">モディファイアーはありません。上から追加できます。</div>';return;}
   host.innerHTML="";mods.forEach((mod,index)=>{
-    const card=document.createElement("div");card.className="modifier-card";const head=document.createElement("div");head.className="modifier-card-head";const title=document.createElement("strong");title.textContent=MODIFIER_NAMES[mod.type]||mod.type;
+    const card = document.createElement("div");
+card.className = "modifier-card";
+card.dataset.modifierIndex = index;
+
+if(index === activeModifierIndex){
+  card.classList.add("modifier-card-active");
+}const head=document.createElement("div");head.className="modifier-card-head";const title=document.createElement("strong");title.textContent=MODIFIER_NAMES[mod.type]||mod.type;
     const toggle=document.createElement("button");toggle.textContent=mod.enabled===false?"無効":"有効";toggle.onclick=()=>updateModifier(index,"enabled",mod.enabled===false);const del=document.createElement("button");del.textContent="削除";del.onclick=()=>removeModifier(index);head.append(title,toggle,del);card.append(head);
     const addRange=(label,key,min,max,step=1)=>{const row=document.createElement("div");row.className="field";const l=document.createElement("label");l.textContent=label;const input=document.createElement("input");input.type="range";input.min=min;input.max=max;input.step=step;input.value=mod[key]??0;input.oninput=()=>{const mods=getModifiers(selected);mods[index][key]=Number(input.value);selected.dataset.modifiers=JSON.stringify(mods);applyModifiers(selected);};input.onchange=()=>{renderModifierList();snapshot();};row.append(l,input);card.append(row);};
     if(["blur","hue","bevel","outline"].includes(mod.type))addRange(mod.type==="blur"?"強さ":mod.type==="hue"?"角度":mod.type==="bevel"?"丸み":"太さ","value",0,mod.type==="hue"?360:20,1);
@@ -1382,9 +1737,44 @@ function renderModifierList(){
     host.append(card);
   });
 }
-function focusModifierPanel(){
+function focusModifierPanel(index = null){
   switchDockTab("modifier");
-  const panel=$("modifierPanel");if(panel){panel.scrollIntoView({behavior:"smooth",block:"start"});panel.style.outline="1px solid #579bd7";setTimeout(()=>panel.style.outline="",900);}
+
+  const panel = $("modifierPanel");
+
+  if(panel){
+    panel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    panel.style.outline = "1px solid #579bd7";
+
+    setTimeout(() => {
+      panel.style.outline = "";
+    }, 900);
+  }
+
+  if(index !== null){
+    setTimeout(() => {
+      const card = document.querySelector(
+        `.modifier-card[data-modifier-index="${index}"]`
+      );
+
+      if(card){
+        card.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+        card.style.outline = "2px solid #579bd7";
+
+        setTimeout(() => {
+          card.style.outline = "";
+        }, 1200);
+      }
+    }, 250);
+  }
 }
 
 /* =====================================
@@ -1597,7 +1987,10 @@ function updateLayers(){
       if(!el.dataset.id||el.dataset.guide==="true")return;
       const isFolder=el.dataset.folder==="true";
       const isGroup=el.tagName.toLowerCase()==="g";
-      const hasTreeChildren=isGroup&&[...el.children].some(child=>child.dataset.id);
+      const modifiers = getModifiers(el);
+const hasModifiers = modifiers.length > 0;
+const hasTreeChildren =
+  isGroup && [...el.children].some(child => child.dataset.id);
       const row=document.createElement("div");
       row.className="layer"+(isFolder?" folder":"")+(selectedObjects.has(el)?" selected multi-selected":"")+(el.dataset.layerRoot==="true"?" layer-root":"")+(el.dataset.layerRoot==="true"&&el.dataset.id===activeLayer?" active-layer":"");
       row.dataset.objectId=el.dataset.id;
@@ -1643,13 +2036,104 @@ function updateLayers(){
       menu.onclick=e=>{e.stopPropagation();openObjectMenu(menu,el);};
       row.append(eye,name,menu);
       container.append(row);
-      if(isFolder||hasTreeChildren){
-        const children=document.createElement("div");children.className="layer-children";
-        const collapsed=isFolder&&el.dataset.collapsed==="true";
-        if(collapsed)children.style.display="none";
-        container.append(children);
-        renderItems(el,children);
-      }
+      if(isFolder || hasTreeChildren || hasModifiers){
+  const children = document.createElement("div");
+  children.className = "layer-children";
+
+  const collapsed =
+    isFolder && el.dataset.collapsed === "true";
+
+  if(collapsed) children.style.display = "none";
+
+  container.append(children);
+
+  // 通常のオブジェクト・フォルダの子要素
+  renderItems(el, children);
+
+  // モディファイアー専用フォルダ
+  if(hasModifiers){
+    const modFolder = document.createElement("div");
+    modFolder.className = "layer folder modifier-tree-folder";
+
+    const modCollapsed =
+      el.dataset.modifierFolderCollapsed === "true";
+
+    const toggle = document.createElement("button");
+    toggle.className = "folder-toggle";
+    toggle.textContent = modCollapsed ? "▸" : "▾";
+    toggle.title = "モディファイアーを開閉";
+
+    toggle.onclick = e => {
+      e.stopPropagation();
+
+      el.dataset.modifierFolderCollapsed =
+        modCollapsed ? "false" : "true";
+
+      updateLayers();
+      snapshot();
+    };
+
+    const folderName = document.createElement("span");
+    folderName.className = "layer-name";
+    folderName.textContent = "▰ モディファイアー";
+    folderName.onclick = () => {
+      el.dataset.modifierFolderCollapsed =
+        modCollapsed ? "false" : "true";
+      updateLayers();
+    };
+
+    modFolder.append(toggle, folderName);
+    children.append(modFolder);
+
+    // モディファイアーの一覧
+    const modItems = document.createElement("div");
+    modItems.className = "layer-children modifier-tree-items";
+
+    if(modCollapsed){
+      modItems.style.display = "none";
+    }
+
+    modifiers.forEach((mod, index) => {
+      const item = document.createElement("div");
+      item.className = "layer modifier-tree-item";
+
+      const spacer = document.createElement("span");
+      spacer.style.width = "25px";
+      spacer.style.flexShrink = "0";
+
+      const icon = document.createElement("span");
+      icon.textContent = mod.enabled === false ? "○" : "◆";
+
+      const name = document.createElement("span");
+      name.className = "layer-name";
+      name.textContent =
+        MODIFIER_NAMES[mod.type] || mod.type;
+
+      const status = document.createElement("span");
+      status.style.color = "#9299a4";
+      status.style.fontSize = "10px";
+      status.textContent = mod.enabled === false ? "無効" : "";
+
+      item.append(spacer, icon, name, status);
+
+      item.title = "クリックして設定を表示";
+
+      item.onclick = () => {
+        activeModifierIndex = index;
+
+        // 対象オブジェクトを選択
+        select(el);
+
+        // 設定パネルを開いて該当項目へ移動
+        focusModifierPanel(index);
+      };
+
+      modItems.append(item);
+    });
+
+    children.append(modItems);
+  }
+}
     });
   }
   renderItems(objects,root);
@@ -1835,9 +2319,15 @@ function resizePage(){
   snapshot();
 }
 function changeZoom(n){
-  zoom=Math.max(.2,Math.min(3,zoom+n));
-  $("stage").style.transform=`translate(-50%,-50%) scale(${zoom})`;
-  $("zoom").value=Math.round(zoom*100)+"%";
+  zoom = Math.max(0.2, Math.min(3, zoom + n));
+
+  $("stage").style.transform =
+    `translate(-50%, -50%) scale(${zoom})`;
+
+  $("zoom").value = Math.round(zoom * 100) + "%";
+
+  // 拡大率を自動保存
+  saveDrawing();
 }
 function newDocument(){
   if(!confirm("現在の作品を消去しますか？"))return;
@@ -1884,20 +2374,71 @@ function exportPNG(){
   img.src=url;
 }
 function openText(p){
+  editingText=null;
   textPosition=p;
+
   $("textDialog").style.display="flex";
   $("textInput").value="";
+  $("textDialog").querySelector("b").textContent="テキストを入力";
+  $("textDialog").querySelectorAll("button")[1].textContent="追加";
+
   $("textInput").focus();
 }
-function closeText(){$("textDialog").style.display="none"}
+
+// 既存テキストの編集
+function openTextEdit(el){
+  if(!el)return;
+
+  editingText=el;
+  textPosition=null;
+
+  select(el);
+
+  $("textDialog").style.display="flex";
+  $("textInput").value=el.textContent || "";
+  $("textDialog").querySelector("b").textContent="テキストを編集";
+  $("textDialog").querySelectorAll("button")[1].textContent="更新";
+
+  $("textInput").focus();
+  $("textInput").select();
+}
+
+function closeText(){
+  $("textDialog").style.display="none";
+  editingText=null;
+}
+
 function createText(){
   const value=$("textInput").value;
+
   if(!value.trim())return;
-  const el=make("text",{x:textPosition.x,y:textPosition.y});
+
+  // 既存テキストの更新
+  if(editingText){
+    editingText.textContent=value;
+
+    select(editingText);
+    snapshot();
+    closeText();
+
+    $("statusText").textContent="テキストを更新しました";
+    return;
+  }
+
+  // 新しいテキストの追加
+  const el=make("text",{
+    x:textPosition.x,
+    y:textPosition.y
+  });
+
   el.textContent=value;
   el.setAttribute("font-size","32");
   el.setAttribute("font-family","sans-serif");
-  appendToActiveLayer(el);select(el);snapshot();closeText();
+
+  appendToActiveLayer(el);
+  select(el);
+  snapshot();
+  closeText();
 }
 /* =====================================
    Inkescape / Canva風アニメーションタイムライン
