@@ -8,6 +8,7 @@
 <link rel="icon" href="inkescape.png" sizes="16x16" type="image/png" />   
 <style>
 :root {
+  --tool-width:48px;--right-width:310px;--outliner-height:280px;--timeline-height:112px;--splitter-size:5px;
   --bg:#202124;--panel:#292a2d;--panel2:#34363a;
   --line:#45474c;--text:#e8eaed;--muted:#aeb3bb;
   --blue:#4c9ffe;--accent:#287edb;
@@ -75,14 +76,14 @@ stroke-dasharray:5 3;pointer-events:none}
 .node-handle{fill:white;stroke:#1688ff;stroke-width:2}
 .node-handle.active{fill:#1688ff}
 /* Blender風ワークスペース */
-.workspace{height:calc(100vh - 44px - 112px);grid-template-columns:48px minmax(0,1fr) 310px;}
-.sidebar{padding:0;display:grid;grid-template-rows:minmax(180px,42%) minmax(0,1fr);overflow:hidden;gap:0;background:#252629;}
+.workspace{height:calc(100vh - 44px - var(--timeline-height) - var(--splitter-size));grid-template-columns:var(--tool-width) var(--splitter-size) minmax(0,1fr) var(--splitter-size) var(--right-width);}
+.sidebar{padding:0;display:grid;grid-template-rows:minmax(110px,var(--outliner-height)) var(--splitter-size) minmax(110px,1fr);overflow:hidden;gap:0;background:#252629;}
 .outliner-panel{min-height:0;overflow:auto;border-bottom:1px solid #111;background:#292a2d;padding:9px;}
 .outliner-heading,.properties-heading{height:27px;display:flex;align-items:center;justify-content:space-between;font-weight:bold;color:#d8dbe0;margin-bottom:7px;}
 .properties-panel{min-height:0;overflow:auto;padding:10px;background:#292a2d;}
 .properties-panel .panel-title{display:none;}
 .properties-panel .section:first-of-type{border-top:0;padding-top:3px;}
-.timeline{height:112px;background:#252629;border-top:1px solid #111;display:flex;flex-direction:column;color:#c5c8ce;}
+.timeline{height:var(--timeline-height);background:#252629;border-top:1px solid #111;display:flex;flex-direction:column;color:#c5c8ce;}
 .timeline-head{height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid #414247;}
 .timeline-track{position:relative;flex:1;overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0,transparent 49px,#3b3d42 50px);}
 .timeline-ruler{height:25px;border-bottom:1px solid #3b3d42;display:flex;justify-content:space-around;color:#8e949e;font-size:11px;padding-top:5px;}
@@ -107,13 +108,13 @@ stroke-dasharray:5 3;pointer-events:none}
 .layer-name-input{flex:1;min-width:0;width:0;background:#17181a;color:#fff;border:1px solid var(--blue);border-radius:3px;padding:4px;}
 .layer-menu{width:25px;min-width:25px;padding:2px!important;font-size:17px;line-height:18px;}
 @media(max-width:800px){
-.workspace{grid-template-columns:42px minmax(0,1fr) 260px;height:calc(100vh - 44px - 90px);}
-.sidebar{display:grid;grid-template-rows:40% 60%;}
+.workspace{grid-template-columns:42px var(--splitter-size) minmax(0,1fr) var(--splitter-size) 260px;height:calc(100vh - 44px - var(--timeline-height) - var(--splitter-size));}
+.sidebar{display:grid;grid-template-rows:minmax(100px,var(--outliner-height)) var(--splitter-size) minmax(100px,1fr);}
 .timeline{height:90px;}
 .brand{font-size:13px;margin-right:3px}
 .topbar{gap:2px}
 }
-@media(max-width:560px){.workspace{grid-template-columns:40px minmax(0,1fr);} .sidebar{display:none;} .timeline{height:76px;}}
+@media(max-width:560px){.workspace{grid-template-columns:40px 0 minmax(0,1fr) 0 0;} .sidebar,.dock-splitter.vertical,.dock-splitter.horizontal:not(.timeline-splitter){display:none!important;} .timeline{height:var(--timeline-height);}}
 
 /* フォルダ・階層表示 */
 
@@ -150,11 +151,26 @@ stroke-dasharray:5 3;pointer-events:none}
 .layer-name {
   min-width: 0;
 }
+
+/* リサイズ可能なドック */
+.dock-splitter{background:#1b1c1e;position:relative;z-index:8;touch-action:none;user-select:none;}
+.dock-splitter:hover,.dock-splitter.dragging{background:#397fbd;}
+.dock-splitter.vertical{cursor:col-resize;border-left:1px solid #111;border-right:1px solid #111;}
+.dock-splitter.horizontal{cursor:row-resize;border-top:1px solid #111;border-bottom:1px solid #111;}
+.timeline-splitter{height:var(--splitter-size);width:100%;flex:none;}
+.layout-control{display:flex;align-items:center;gap:5px;margin-left:auto;white-space:nowrap;}
+.layout-control select{background:#202124;color:#eee;border:1px solid var(--line);border-radius:4px;padding:6px;max-width:150px;}
+.layer.layer-root{background:#302f29;border-color:#76653b;}
+.layer.active-layer .layer-name{color:#f2d38a;font-weight:700;}
+.layer-root-mark{font-size:10px;color:#d7b56d;margin-left:4px;}
+@media(max-width:800px){.layout-control{margin-left:4px}.layout-control select{max-width:105px}.layout-control span{display:none;}}
+
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="brand">✦ Inkescape</div>
+  <div class="layout-control"><span>レイアウト</span><select id="layoutPreset"><option value="standard">標準</option><option value="canvas">キャンバス重視</option><option value="properties">プロパティ重視</option><option value="outliner">アウトライナー重視</option></select><button onclick="applyLayoutPreset()">適用</button></div>
   <div class="mode-switch" aria-label="編集モード">
     <button id="objectModeBtn" class="active" onclick="setMode('OBJECT')">オブジェクト</button>
     <button id="editModeBtn" onclick="setMode('EDIT')">編集モード</button>
@@ -196,6 +212,7 @@ stroke-dasharray:5 3;pointer-events:none}
   <div class="tool-separator"></div>
   <button class="tool" data-tool="hand" title="キャンバス移動">✋</button>
 </aside>
+<div class="dock-splitter vertical" data-resize="left" title="ツールバー幅を変更"></div>
 
 <main class="center">
   <div class="canvas-area" id="canvasArea">
@@ -225,6 +242,7 @@ stroke-dasharray:5 3;pointer-events:none}
     </span>
   </div>
 </main>
+<div class="dock-splitter vertical" data-resize="right" title="右パネル幅を変更"></div>
 
 <aside class="sidebar" id="sidebar">
   <div class="panel-title">オブジェクト設定</div>
@@ -326,7 +344,8 @@ stroke-dasharray:5 3;pointer-events:none}
 </aside>
 </div>
 
-<section class="timeline" aria-label="タイムライン">
+<div class="dock-splitter horizontal timeline-splitter" data-resize="timeline" title="タイムラインの高さを変更"></div>
+<section class="timeline" id="timeline" aria-label="タイムライン">
   <div class="timeline-head"><strong>タイムライン</strong><button type="button" title="先頭フレーム">|◀</button><button type="button" title="再生" disabled>▶</button><button type="button" title="末尾フレーム">▶|</button><span style="margin-left:auto;color:#969ba4">フレーム 1 / 250</span></div>
   <div class="timeline-track"><div class="timeline-ruler"><span>1</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span><span>150</span><span>175</span><span>200</span><span>225</span><span>250</span></div><div class="timeline-playhead"></div></div>
 </section>
@@ -461,6 +480,7 @@ function clearDrawing() {
   objects.innerHTML = "";
   layers = [];
   activeLayer = null;
+  ensureLayerStructure();
   selected = null;
   preview = null;
   points = [];
@@ -530,6 +550,29 @@ function point(e){
   p.x=e.clientX;p.y=e.clientY;
   return p.matrixTransform(svg.getScreenCTM().inverse());
 }
+function createLayerGroup(name){
+  const group=document.createElementNS(svg.namespaceURI,"g");
+  const id="layer-"+(++objectCounter);
+  group.dataset.id=id;group.dataset.name=name;group.dataset.folder="true";
+  group.dataset.layerRoot="true";group.dataset.collapsed="false";group.dataset.layer=id;
+  return group;
+}
+function getActiveLayerGroup(){
+  let group=[...objects.children].find(el=>el.dataset.layerRoot==="true"&&el.dataset.id===activeLayer);
+  if(!group)group=[...objects.children].find(el=>el.dataset.layerRoot==="true");
+  if(!group){group=createLayerGroup("レイヤー 1");objects.append(group);activeLayer=group.dataset.id;}
+  return group;
+}
+function appendToActiveLayer(el){const group=getActiveLayerGroup();group.append(el);el.dataset.layer=group.dataset.id;return el;}
+function ensureLayerStructure(){
+  let roots=[...objects.children].filter(el=>el.dataset.layerRoot==="true");
+  if(!roots.length){
+    const old=[...objects.children];const group=createLayerGroup("レイヤー 1");
+    objects.append(group);old.forEach(el=>group.append(el));roots=[group];activeLayer=group.dataset.id;
+  }else if(!roots.some(el=>el.dataset.id===activeLayer)){activeLayer=roots[0].dataset.id;}
+  roots.forEach((root,i)=>{root.dataset.folder="true";root.dataset.layerRoot="true";if(!root.dataset.name)root.dataset.name="レイヤー "+(i+1);});
+}
+
 function make(tag,attrs={}){
   const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
   Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
@@ -633,7 +676,7 @@ $("imageFile").addEventListener("change", async (e) => {
     // オブジェクト名
     el.dataset.name = file.name;
 
-    objects.append(el);
+    appendToActiveLayer(el);
 
     select(el);
     snapshot();
@@ -655,7 +698,11 @@ function refreshSelectionVisuals(){
 function select(el){
   selectedObjects.clear();
   selected=el||null;
-  if(selected)selectedObjects.add(selected);
+  if(selected){
+    selectedObjects.add(selected);
+    const owner=selected.closest('[data-layer-root="true"]');
+    if(owner)activeLayer=owner.dataset.id;
+  }
   refreshSelectionVisuals();
   updateLayers();updateProperties();
 }
@@ -791,7 +838,7 @@ function pointerDown(e){
       preview=make("path");
       preview.setAttribute("fill","none");
       preview.setAttribute("d",`M ${p.x} ${p.y}`);
-      objects.append(preview);
+      appendToActiveLayer(preview);
       points=[p];
     }else{
       points.push(p);
@@ -805,7 +852,7 @@ function pointerDown(e){
       preview=make("path");
       preview.setAttribute("fill","none");
       points=[{x:p.x,y:p.y,c1:null,c2:null}];
-      objects.append(preview);
+      appendToActiveLayer(preview);
       updateBezier();
     }else{
       points.push({x:p.x,y:p.y,c1:null,c2:null});
@@ -820,14 +867,14 @@ function pointerDown(e){
     preview=make("path");
     preview.setAttribute("fill","none");
     preview.setAttribute("d",`M ${p.x} ${p.y}`);
-    objects.append(preview);
+    appendToActiveLayer(preview);
   }else if(tool==="line"){
     preview=make("path");
     preview.setAttribute("fill","none");
-    objects.append(preview);
+    appendToActiveLayer(preview);
   }else if(tool==="rect"||tool==="ellipse"||tool==="star"){
     preview=make(tool==="rect"?"rect":tool==="ellipse"?"ellipse":"path");
-    objects.append(preview);
+    appendToActiveLayer(preview);
   }
   svg.setPointerCapture(e.pointerId);
 }
@@ -976,13 +1023,68 @@ let menuTarget = null;
   outliner.className = "outliner-panel";
   outliner.innerHTML = '<div class="outliner-heading"><span>アウトライナー</span><span style="color:#8f96a1;font-size:11px">シーン</span></div>';
   if(folderSection) outliner.append(folderSection);
+  const splitter = document.createElement("div");
+  splitter.className = "dock-splitter horizontal";
+  splitter.dataset.resize = "outliner";
+  splitter.title = "アウトライナーとプロパティの高さを変更";
   const properties = document.createElement("section");
   properties.className = "properties-panel";
   if(heading) properties.append(heading);
   [...dock.children].forEach(child=>{
     if(child!==heading && child!==folderSection) properties.append(child);
   });
-  dock.replaceChildren(outliner,properties);
+  dock.replaceChildren(outliner,splitter,properties);
+})();
+
+/* =====================================
+   Unity風ドックサイズ・レイアウトプリセット
+===================================== */
+const LAYOUT_KEY="inkescape_layout_v2";
+const layoutRoot=document.documentElement;
+function setLayoutVars(values){
+  Object.entries(values).forEach(([key,value])=>layoutRoot.style.setProperty(key,value));
+  try{
+    const keys=["--tool-width","--right-width","--outliner-height","--timeline-height"];
+    const saved=Object.fromEntries(keys.map(k=>[k,getComputedStyle(layoutRoot).getPropertyValue(k).trim()]));
+    localStorage.setItem(LAYOUT_KEY,JSON.stringify(saved));
+  }catch{}
+}
+function applyLayoutPreset(){
+  const presets={
+    standard:{"--tool-width":"48px","--right-width":"310px","--outliner-height":"280px","--timeline-height":"112px"},
+    canvas:{"--tool-width":"42px","--right-width":"245px","--outliner-height":"180px","--timeline-height":"72px"},
+    properties:{"--tool-width":"48px","--right-width":"390px","--outliner-height":"190px","--timeline-height":"96px"},
+    outliner:{"--tool-width":"48px","--right-width":"350px","--outliner-height":"420px","--timeline-height":"88px"}
+  };
+  setLayoutVars(presets[$("layoutPreset").value]||presets.standard);
+}
+(function restoreLayout(){
+  try{const saved=JSON.parse(localStorage.getItem(LAYOUT_KEY)||"null");if(saved)setLayoutVars(saved);}catch{}
+})();
+(function enableDockResizing(){
+  let dragState=null;
+  document.querySelectorAll(".dock-splitter[data-resize]").forEach(handle=>{
+    handle.addEventListener("pointerdown",e=>{
+      if(handle.offsetParent===null)return;
+      const sidebar=$("sidebar");
+      dragState={type:handle.dataset.resize,x:e.clientX,y:e.clientY,
+        tool:parseFloat(getComputedStyle(layoutRoot).getPropertyValue("--tool-width"))||48,
+        right:parseFloat(getComputedStyle(layoutRoot).getPropertyValue("--right-width"))||310,
+        outliner:sidebar.querySelector(".outliner-panel")?.getBoundingClientRect().height||280,
+        timeline:$("timeline")?.getBoundingClientRect().height||112,handle};
+      handle.classList.add("dragging");handle.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    handle.addEventListener("pointermove",e=>{
+      if(!dragState||dragState.handle!==handle)return;
+      const dx=e.clientX-dragState.x,dy=e.clientY-dragState.y;
+      if(dragState.type==="left")setLayoutVars({"--tool-width":Math.max(38,Math.min(120,dragState.tool+dx))+"px"});
+      if(dragState.type==="right")setLayoutVars({"--right-width":Math.max(220,Math.min(580,dragState.right-dx))+"px"});
+      if(dragState.type==="outliner")setLayoutVars({"--outliner-height":Math.max(100,Math.min($("sidebar").clientHeight-130,dragState.outliner+dy))+"px"});
+      if(dragState.type==="timeline")setLayoutVars({"--timeline-height":Math.max(55,Math.min(330,dragState.timeline-dy))+"px"});
+    });
+    const stop=()=>{if(dragState?.handle===handle){handle.classList.remove("dragging");dragState=null;}};
+    handle.addEventListener("pointerup",stop);handle.addEventListener("pointercancel",stop);
+  });
 })();
 
 function findObjectById(id) {
@@ -1031,7 +1133,7 @@ objectMenu.addEventListener("click",e=>{
   select(el);
   if(action==="duplicate"){duplicateSelected();return;}
   if(action==="delete"){
-    el.remove();
+    removeObjectElement(el);
     if(selected===el||(selected&&el.contains(selected)))select(null);
     updateLayers();snapshot();
   }
@@ -1045,7 +1147,7 @@ function updateLayers(){
   const root=$("layers");
   root.innerHTML="";
   function moveIntoFolder(dragged,folder){
-    if(!dragged||!folder||dragged===folder||dragged.contains(folder))return;
+    if(!dragged||!folder||dragged===folder||dragged.dataset.layerRoot==="true"||dragged.contains(folder))return;
     folder.appendChild(dragged);
     folder.dataset.collapsed="false";
     select(dragged);updateLayers();snapshot();
@@ -1057,7 +1159,7 @@ function updateLayers(){
       const isGroup=el.tagName.toLowerCase()==="g";
       const hasTreeChildren=isGroup&&[...el.children].some(child=>child.dataset.id);
       const row=document.createElement("div");
-      row.className="layer"+(isFolder?" folder":"")+(selectedObjects.has(el)?" selected multi-selected":"");
+      row.className="layer"+(isFolder?" folder":"")+(selectedObjects.has(el)?" selected multi-selected":"")+(el.dataset.layerRoot==="true"?" layer-root":"")+(el.dataset.layerRoot==="true"&&el.dataset.id===activeLayer?" active-layer":"");
       row.dataset.objectId=el.dataset.id;
       row.draggable=true;
       row.addEventListener("dragstart",e=>{
@@ -1092,9 +1194,9 @@ function updateLayers(){
       eye.onclick=()=>{el.style.display=el.style.display==="none"?"":"none";updateLayers();snapshot();};
       const name=document.createElement("span");
       name.className="layer-name";
-      name.textContent=(isFolder?"▰ ":isGroup?"▱ ":"◇ ")+(el.dataset.name||el.tagName.toLowerCase());
+      name.textContent=(el.dataset.layerRoot==="true"?"▣ ":isFolder?"▰ ":isGroup?"▱ ":"◇ ")+(el.dataset.name||el.tagName.toLowerCase());
       name.title="ダブルクリックで名前を変更";
-      name.onclick=e=>{if(editorMode==="OBJECT"&&e.shiftKey)toggleMultiSelection(el);else select(el);};
+      name.onclick=e=>{if(editorMode==="OBJECT"&&e.shiftKey)toggleMultiSelection(el);else select(el);if(el.dataset.layerRoot==="true")snapshot();};
       name.ondblclick=e=>{e.stopPropagation();select(el);renameObject(el);};
       const menu=document.createElement("button");
       menu.className="layer-menu";menu.textContent="⋮";menu.title="オブジェクトメニュー";
@@ -1117,17 +1219,17 @@ function updateLayers(){
     if(e.target.closest(".layer.folder"))return;
     e.preventDefault();
     const dragged=findObjectById(e.dataTransfer.getData("text/plain"));
-    if(!dragged||dragged.parentNode===objects)return;
-    objects.appendChild(dragged);select(dragged);updateLayers();snapshot();
+    if(!dragged||dragged.dataset.layerRoot==="true"||dragged.parentNode===getActiveLayerGroup())return;
+    getActiveLayerGroup().appendChild(dragged);select(dragged);updateLayers();snapshot();
   };
 }
 function addLayer(){
-  const id="layer-"+Date.now();
-  const name="レイヤー "+(layers.length+1);
-  layers.push({id,name,visible:true});
-  activeLayer=id;
-  updateLayers();
-  snapshot();
+  const count=[...objects.children].filter(el=>el.dataset.layerRoot==="true").length+1;
+  const group=createLayerGroup("レイヤー "+count);
+  objects.append(group);
+  activeLayer=group.dataset.id;
+  layers.push({id:group.dataset.id,name:group.dataset.name,visible:true});
+  select(group);updateLayers();snapshot();
 }
 /* =====================================
    Inkescape フォルダ管理
@@ -1148,14 +1250,14 @@ function addFolder() {
   folder.dataset.collapsed = "false";
   folder.dataset.layer = activeLayer || "default";
 
-  objects.append(folder);
+  getActiveLayerGroup().append(folder);
 
   select(folder);
   updateLayers();
   snapshot();
 }
 function groupSelected(){
-  if(!selected)return;
+  if(!selected||selected.dataset.layerRoot==="true")return;
   const parent=selected.parentNode;
   const g=document.createElementNS(svg.namespaceURI,"g");
   g.dataset.id="group-"+(++objectCounter);
@@ -1165,7 +1267,7 @@ function groupSelected(){
   select(g);snapshot();
 }
 function ungroupSelected(){
-  if(!selected||selected.tagName.toLowerCase()!=="g")return;
+  if(!selected||selected.tagName.toLowerCase()!=="g"||selected.dataset.layerRoot==="true")return;
   const g=selected;
   const parent=g.parentNode;
   while(g.firstChild)parent.insertBefore(g.firstChild,g);
@@ -1186,16 +1288,32 @@ function alignSelected(mode){
   selected.setAttribute("transform",`translate(${dx} ${dy}) ${old}`.trim());
   snapshot();
 }
+function removeObjectElement(el){
+  if(!el)return;
+  if(el.dataset.layerRoot==="true"){
+    const roots=[...objects.children].filter(item=>item.dataset.layerRoot==="true");
+    if(roots.length<=1){
+      el.replaceChildren();
+      activeLayer=el.dataset.id;
+    }else{
+      const next=roots.find(item=>item!==el);
+      el.remove();
+      if(activeLayer===el.dataset.id)activeLayer=next?.dataset.id||null;
+    }
+    layers=layers.filter(layer=>layer.id!==el.dataset.id);
+  }else el.remove();
+}
+
 function deleteSelected(){
   const targets=getSelectedObjects();
   if(!targets.length)return;
   // 親グループとその子が同時選択されている場合は親だけ削除する
   const topLevel=targets.filter(el=>!targets.some(other=>other!==el&&other.contains(el)));
-  topLevel.forEach(el=>el.remove());
-  select(null);snapshot();
+  topLevel.forEach(removeObjectElement);
+  select(null);updateLayers();snapshot();
 }
 function duplicateSelected(){
-  if(!selected)return;
+  if(!selected||selected.dataset.layerRoot==="true")return;
   const clone=selected.cloneNode(true);
   clone.dataset.id="object-"+(++objectCounter);
   clone.dataset.name=(selected.dataset.name||"Object")+" コピー";
@@ -1205,8 +1323,9 @@ function duplicateSelected(){
 }
 function moveOrder(direction){
   if(!selected)return;
-  if(direction>0)objects.append(selected);
-  else objects.insertBefore(selected,objects.firstChild);
+  const parent=selected.parentNode;
+  if(direction>0)parent.append(selected);
+  else parent.insertBefore(selected,parent.firstChild);
   updateLayers();snapshot();
 }
 function applyGeometry(){
@@ -1252,8 +1371,8 @@ function changeZoom(n){
 }
 function newDocument(){
   if(!confirm("現在の作品を消去しますか？"))return;
-  objects.innerHTML="";overlay.innerHTML="";defs.querySelectorAll("linearGradient").forEach(x=>x.remove());
-  select(null);snapshot();
+  objects.innerHTML="";layers=[];activeLayer=null;overlay.innerHTML="";defs.querySelectorAll("linearGradient").forEach(x=>x.remove());
+  ensureLayerStructure();select(null);snapshot();
 }
 function download(data,name,type){
   const blob=data instanceof Blob?data:new Blob([data],{type});
@@ -1304,7 +1423,7 @@ function createText(){
   el.textContent=value;
   el.setAttribute("font-size","32");
   el.setAttribute("font-family","sans-serif");
-  objects.append(el);select(el);snapshot();closeText();
+  appendToActiveLayer(el);select(el);snapshot();closeText();
 }
 $("importFile").addEventListener("change",async e=>{
   const file=e.target.files[0];if(!file)return;
@@ -1314,10 +1433,12 @@ $("importFile").addEventListener("change",async e=>{
     if(doc.documentElement.tagName.toLowerCase()!=="svg")throw Error("SVG形式ではありません");
     const incoming=doc.documentElement;
     objects.innerHTML="";
+    activeLayer=null;
+    ensureLayerStructure();
     defs.innerHTML=incoming.querySelector("defs")?.innerHTML||"";
     const group=incoming.querySelector("g")||incoming;
     [...group.children].forEach(el=>{
-      if(el.tagName.toLowerCase()!=="defs")objects.append(document.importNode(el,true));
+      if(el.tagName.toLowerCase()!=="defs")appendToActiveLayer(document.importNode(el,true));
     });
     if(incoming.getAttribute("viewBox"))svg.setAttribute("viewBox",incoming.getAttribute("viewBox"));
     select(null);snapshot();updateLayers();
@@ -1329,7 +1450,9 @@ window.addEventListener("keydown",e=>{
   if(e.ctrlKey||e.metaKey){
     if(e.key.toLowerCase()==="a"&&editorMode==="OBJECT"){
       e.preventDefault();
-      selectedObjects=new Set([...objects.children].filter(el=>el.dataset.id&&el.dataset.guide!=="true"));
+      const roots=[...objects.children].filter(el=>el.dataset.layerRoot==="true");
+      const candidates=roots.length?roots.flatMap(root=>[...root.children]):[...objects.children];
+      selectedObjects=new Set(candidates.filter(el=>el.dataset.id&&el.dataset.guide!=="true"));
       selected=[...selectedObjects].at(-1)||null;
       refreshSelectionVisuals();updateLayers();updateProperties();
       return;
@@ -1346,12 +1469,9 @@ window.addEventListener("keydown",e=>{
   if(e.key==="Escape")cancelPath();
 });
 const restored = loadDrawing();
+ensureLayerStructure();
+updateLayers();
 setMode("OBJECT");
-
-if (!restored) {
-  updateLayers();
-}
-
 snapshot();
 </script>
 </body>
