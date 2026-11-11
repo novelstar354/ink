@@ -24,12 +24,19 @@ border:1px solid var(--line);border-radius:4px;padding:7px;cursor:pointer}
 button:hover{background:#45484e}
 button.active{background:#175ea8;border-color:var(--blue)}
 .topbar{height:44px;background:var(--panel);border-bottom:1px solid var(--line);
-display:flex;align-items:center;gap:5px;padding:4px 8px;overflow-x:auto}
-.brand{font-weight:bold;font-size:16px;margin-right:12px;white-space:nowrap}
+display:flex;align-items:center;gap:5px;padding:4px 8px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;overscroll-behavior-x:contain;} 
+.brand{font-weight:bold;font-size:16px;margin-right:12px;white-space:nowrap;position:sticky;left:0;z-index:20;flex:0 0 auto;background:var(--panel);padding:4px 8px 4px 0;align-self:stretch;display:flex;align-items:center;}
 .workspace{display:grid;grid-template-columns:48px 1fr 265px;height:calc(100vh - 44px)}
 .toolbar{background:var(--panel);border-right:1px solid var(--line);
 display:flex;flex-direction:column;align-items:center;padding:6px 4px;gap:5px}
 .tool{width:37px;height:37px;padding:0;font-size:17px;flex-shrink:0}
+/* 左ツールバー最上部に独立したモード切り替え */
+.toolbar{overflow:hidden;}
+.toolbar-mode-switch{width:100%;flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:1px 0 3px;}
+.toolbar-mode-switch button{width:100%;min-width:0;padding:6px 1px;font-size:10px;font-weight:bold;line-height:1.2;white-space:normal;}
+.toolbar-mode-switch .mode-badge{display:block;margin:0;text-align:center;font-size:9px;line-height:1.2;overflow-wrap:anywhere;}
+.toolbar>.tool-separator{flex:0 0 1px;}
+
 .tool-separator{height:1px;background:var(--line);width:30px;margin:3px}
 .center{position:relative;overflow:hidden;background:#1b1c1e}
 .canvas-area{position:absolute;inset:0;overflow:auto;
@@ -71,14 +78,15 @@ border-radius:8px;width:min(350px,90vw)}
 .dialog input{width:100%;padding:9px;margin:10px 0;background:#202124;
 border:1px solid var(--line);color:white}
 .dialog-actions{display:flex;justify-content:flex-end;gap:7px}
-#selectionBox{fill:none;stroke:#1688ff;stroke-width:1.5;
-stroke-dasharray:5 3;pointer-events:none}
+#selectionBox{fill:#1688ff;fill-opacity:.10;stroke:#1688ff;stroke-width:1.5;stroke-dasharray:5 3;pointer-events:none}
 .node-handle{fill:white;stroke:#1688ff;stroke-width:2}
 .node-handle.active{fill:#1688ff}
 /* Blender風ワークスペース */
 .workspace{height:calc(100vh - 44px - var(--timeline-height) - var(--splitter-size));grid-template-columns:var(--tool-width) var(--splitter-size) minmax(0,1fr) var(--splitter-size) var(--right-width);}
 .sidebar{padding:0;display:grid;grid-template-rows:minmax(110px,var(--outliner-height)) var(--splitter-size) minmax(110px,1fr);overflow:hidden;gap:0;background:#252629;}
-.outliner-panel{min-height:0;overflow:auto;border-bottom:1px solid #111;background:#292a2d;padding:9px;}
+.outliner-panel{min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column;border-bottom:1px solid #111;background:#292a2d;padding:9px;}
+.outliner-panel>.outliner-heading{flex:0 0 27px;position:relative;z-index:2;background:#292a2d;}
+.outliner-panel>.section{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;}
 .outliner-heading,.properties-heading{height:27px;display:flex;align-items:center;justify-content:space-between;font-weight:bold;color:#d8dbe0;margin-bottom:7px;}
 .properties-panel{min-height:0;overflow:auto;padding:10px;background:#292a2d;}
 .properties-panel .panel-title{display:none;}
@@ -89,6 +97,23 @@ stroke-dasharray:5 3;pointer-events:none}
 .timeline-ruler{height:25px;border-bottom:1px solid #3b3d42;display:flex;justify-content:space-around;color:#8e949e;font-size:11px;padding-top:5px;}
 .timeline-playhead{position:absolute;left:28%;top:0;bottom:0;width:1px;background:#e6a23c;}
 .timeline-playhead:before{content:"";position:absolute;top:0;left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:7px solid #e6a23c;}
+.timeline-head button{padding:4px 7px;font-size:11px;white-space:nowrap}
+.timeline-setting{display:flex;align-items:center;gap:4px;color:#9da3ad;font-size:11px;white-space:nowrap}
+.timeline-setting input,.timeline-setting select{width:58px;background:#1c1d20;color:#eee;border:1px solid #4a4d54;border-radius:3px;padding:3px}.timeline-setting select{width:95px}
+.timeline-frame-label{margin-left:auto;color:#c5c8ce;white-space:nowrap;font-variant-numeric:tabular-nums}
+.timeline-scroll{position:relative;flex:1;overflow:auto;min-height:0;background:#202124}
+.timeline-content{position:relative;width:3180px;min-height:100%;}
+.timeline-ruler{height:25px;display:block;position:relative;border-bottom:1px solid #45474c;background:#292a2d;}
+.timeline-tick{position:absolute;top:0;height:100%;padding:5px 0 0 4px;border-left:1px solid #44474e;color:#9da3ad;font-size:10px;}
+.timeline-rows{position:relative;}
+.timeline-row{height:25px;border-bottom:1px solid #35373c;position:relative;background:repeating-linear-gradient(90deg,transparent 0,transparent 11px,#303238 12px);}
+.timeline-row-label{position:sticky;left:0;display:inline-block;z-index:2;width:180px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#292a2d;border-right:1px solid #494b51;padding:5px 8px;height:24px;color:#c6c9cf;font-size:11px;}
+.timeline-key{position:absolute;top:7px;width:10px;height:10px;background:#e6a23c;transform:rotate(45deg);border:1px solid #ffcf80;cursor:pointer;z-index:3;}
+.timeline-key:hover{background:#fff0c4;}
+.timeline-playhead{left:0;z-index:5;pointer-events:none;}
+.timeline-empty{padding:9px;color:#777e89;font-size:11px;}
+@media(max-width:700px){.timeline-head{gap:4px;padding:0 5px}.timeline-head button{padding:4px;font-size:10px}.timeline-setting{display:none}.timeline-frame-label{font-size:10px}}
+
 #objectMenu{position:fixed;z-index:1000;display:none;min-width:150px;padding:5px;background:#303238;border:1px solid #555963;border-radius:6px;box-shadow:0 8px 24px #0009;}
 #objectMenu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:8px;border-radius:4px;}
 #objectMenu button:hover{background:#454a54;}
@@ -100,6 +125,8 @@ stroke-dasharray:5 3;pointer-events:none}
 .palette-color:hover{outline:2px solid var(--blue);outline-offset:1px;}
 .palette-color.active{outline:2px solid #fff;outline-offset:1px;}
 .palette-hint{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.fill-mode-controls button{flex:1;}
+.fill-mode-controls button.active{background:#245b8e;border-color:#579bd7;color:#fff;}
 .layer.multi-selected{border-color:#78b7f5;background:#203b54;}
 #objects .selected-object{filter:drop-shadow(0 0 2px #1688ff); }
 .mode-badge{font-size:11px;color:#aeb3bb;margin-left:5px;}
@@ -165,17 +192,90 @@ stroke-dasharray:5 3;pointer-events:none}
 .layer-root-mark{font-size:10px;color:#d7b56d;margin-left:4px;}
 @media(max-width:800px){.layout-control{margin-left:4px}.layout-control select{max-width:105px}.layout-control span{display:none;}}
 
+
+/* Blender風アプリケーションメニュー */
+.app-menus{display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.app-menu-wrap{position:relative;flex-shrink:0;}
+.topbar>*{flex-shrink:0;}
+.app-menus{flex-shrink:0;}
+.app-menu-trigger{background:transparent;border-color:transparent;padding:7px 9px;color:#d8dbe0;}
+.app-menu-trigger:hover,.app-menu-trigger[aria-expanded="true"]{background:#3b3e44;border-color:#50545c;}
+.app-menu{display:none;position:fixed;top:48px;left:8px;min-width:190px;padding:5px;background:#303238;border:1px solid #555963;border-radius:6px;box-shadow:0 9px 26px #000a;z-index:1200;}
+.app-menu.open{display:block;}
+.app-menu button{display:block;width:100%;text-align:left;background:transparent;border:0;padding:8px 10px;border-radius:4px;white-space:nowrap;}
+.app-menu button:hover{background:#454a54;}
+.modifier-list{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.modifier-card{border:1px solid #454a53;border-radius:5px;background:#222428;padding:9px;}
+.modifier-card-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.modifier-card-head strong{flex:1;font-size:12px;}
+.modifier-card-head button{padding:3px 7px;font-size:11px;}
+.modifier-card .field{margin:6px 0;}
+.modifier-card .field label{width:58px;font-size:11px;}
+.modifier-empty{font-size:11px;color:#9299a4;line-height:1.6;padding:6px 2px;}
+@media(max-width:900px){.app-menu-trigger{padding:6px 5px;font-size:11px}.app-menus{gap:0}}
+@media(max-width:700px){.app-menus{display:flex;}}
+
+
+/* Canva風アニメーション編集タイムライン */
+.timeline{min-height:55px;}
+.timeline-head{flex-wrap:nowrap;overflow-x:auto;flex:none;}
+.timeline-head strong{white-space:nowrap;color:#e4e7ec;margin-right:5px;}
+.timeline-head button{border-radius:4px;background:#34373d;}
+.timeline-head button:hover{background:#46515f;}
+.timeline-scroll{background:#1e2024;}
+.timeline-content{min-height:100%;}
+.timeline-row{height:34px;background:repeating-linear-gradient(90deg,transparent 0,transparent 11px,#303238 12px);}
+.timeline-row-label{height:33px;padding-top:9px;background:#292c31;}
+.timeline-clip{position:absolute;top:5px;height:23px;left:180px;border:1px solid #4b82ad;border-radius:4px;background:linear-gradient(180deg,#315d7e,#24445f);opacity:.78;pointer-events:none;}
+.timeline-key{top:12px;width:10px;height:10px;border-radius:2px;background:#f1b85b;border:1px solid #ffe0a1;touch-action:none;}
+.timeline-key.dragging{background:#fff;border-color:#fff;box-shadow:0 0 0 4px #e6a23c44;}
+.timeline-playhead{position:absolute;top:0;bottom:0;width:1px;background:#f0ad4e;z-index:5;pointer-events:none;}
+.timeline-empty{padding:14px 190px;color:#9299a4;white-space:nowrap;}
+@media(max-width:700px){.timeline-head{height:40px}.timeline-head button{font-size:10px}.timeline-row-label{width:125px;max-width:125px}.timeline-clip{left:125px}.timeline-empty{padding-left:130px}}
+
+
+/* アウトライナー下部：左側カテゴリタブ＋右側設定 */
+.properties-panel{display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:0!important;}
+.properties-panel>.panel-title{display:none!important;}
+.properties-layout{display:flex;flex:1;min-height:0;min-width:0;overflow:hidden;}
+.properties-tabs{width:76px;flex:0 0 76px;display:flex;flex-direction:column;gap:3px;padding:7px 5px;background:#232529;border-right:1px solid #41444b;overflow-y:auto;}
+.properties-tab{width:100%;min-height:53px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 2px;background:transparent;border:1px solid transparent;border-radius:5px;color:#aeb4bf;font-size:10px;line-height:1.15;}
+.properties-tab:hover{background:#343941;color:#f1f3f5;}
+.properties-tab.active{background:#263d53;border-color:#416d91;color:#e8f3ff;}
+.properties-tab .tab-icon{font-size:18px;line-height:20px;}
+.properties-tab .tab-label{white-space:normal;text-align:center;overflow-wrap:anywhere;}
+.properties-content{flex:1;min-width:0;min-height:0;overflow:auto;padding:9px 10px;background:#292a2d;}
+.properties-tab-pane[hidden]{display:none!important;}
+.properties-tab-pane>.section:first-child{border-top:0;padding-top:3px;}
+.properties-tab-pane .section{padding:10px 0;}
+@media(max-width:800px){.properties-tabs{width:62px;flex-basis:62px;padding:5px 3px}.properties-tab{min-height:48px;font-size:9px}.properties-content{padding:7px;}}
+
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="brand">✦ Inkescape</div>
-  <div class="layout-control"><span>レイアウト</span><select id="layoutPreset"><option value="standard">標準</option><option value="canvas">キャンバス重視</option><option value="properties">プロパティ重視</option><option value="outliner">アウトライナー重視</option></select><button onclick="applyLayoutPreset()">適用</button></div>
-  <div class="mode-switch" aria-label="編集モード">
-    <button id="objectModeBtn" class="active" onclick="setMode('OBJECT')">オブジェクト</button>
-    <button id="editModeBtn" onclick="setMode('EDIT')">編集モード</button>
-    <span id="modeBadge" class="mode-badge">Object Mode</span>
-  </div>
+  <nav class="app-menus" aria-label="アプリケーションメニュー">
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="fileMenu">ファイル</button><div class="app-menu" id="fileMenu">
+      <button onclick="newDocument();closeAppMenus()">新規作成</button><button onclick="$('importFile').click();closeAppMenus()">SVGを開く</button><button onclick="saveSVG();closeAppMenus()">SVGで保存</button><button onclick="exportPNG();closeAppMenus()">PNGで書き出し</button><button onclick="exportAnimatedSVG();closeAppMenus()">アニメーションSVG</button>
+    </div></div>
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="editMenu">編集</button><div class="app-menu" id="editMenu">
+      <button onclick="undo();closeAppMenus()">元に戻す</button><button onclick="redo();closeAppMenus()">やり直す</button><button onclick="duplicateSelected();closeAppMenus()">複製</button><button onclick="deleteSelected();closeAppMenus()">削除</button>
+    </div></div>
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="addMenu">追加</button><div class="app-menu" id="addMenu">
+      <button onclick="setTool('rect');closeAppMenus()">四角形</button><button onclick="setTool('ellipse');closeAppMenus()">円・楕円</button><button onclick="setTool('star');closeAppMenus()">星形</button><button onclick="setTool('line');closeAppMenus()">直線</button><button onclick="setTool('text');closeAppMenus()">テキスト</button><button onclick="$('imageFile').click();closeAppMenus()">画像</button>
+    </div></div>
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="objectAppMenu">オブジェクト</button><div class="app-menu" id="objectAppMenu">
+      <button onclick="groupSelected();closeAppMenus()">グループ化</button><button onclick="ungroupSelected();closeAppMenus()">グループ解除</button><button onclick="duplicateSelected();closeAppMenus()">複製</button><button onclick="deleteSelected();closeAppMenus()">削除</button>
+    </div></div>
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="modifierAppMenu">モディファイアー</button><div class="app-menu" id="modifierAppMenu">
+      <button onclick="addModifier('blur');closeAppMenus()">ぼかしを追加</button><button onclick="addModifier('shadow');closeAppMenus()">ドロップシャドウを追加</button><button onclick="addModifier('grayscale');closeAppMenus()">グレースケールを追加</button><button onclick="addModifier('hue');closeAppMenus()">色相回転を追加</button><hr><button onclick="addModifier('mirror');closeAppMenus()">ミラー</button><button onclick="addModifier('array');closeAppMenus()">配列</button><button onclick="addModifier('bevel');closeAppMenus()">ベベル風</button><button onclick="addModifier('outline');closeAppMenus()">アウトライン</button><button onclick="focusModifierPanel();closeAppMenus()">モディファイアーパネルを表示</button>
+    </div></div>
+    <div class="app-menu-wrap"><button class="app-menu-trigger" data-menu="viewMenu">表示</button><div class="app-menu" id="viewMenu">
+      <button onclick="$('layoutPreset').value='standard';applyLayoutPreset();closeAppMenus()">標準レイアウト</button><button onclick="$('layoutPreset').value='canvas';applyLayoutPreset();closeAppMenus()">キャンバス重視</button><button onclick="$('layoutPreset').value='properties';applyLayoutPreset();closeAppMenus()">プロパティ重視</button><button onclick="$('layoutPreset').value='outliner';applyLayoutPreset();closeAppMenus()">アウトライナー重視</button>
+    </div></div>
+  </nav>
+  <div class="layout-control"><span>レイアウト</span><select id="layoutPreset" title="選択すると自動で適用"><option value="standard">標準</option><option value="canvas">キャンバス重視</option><option value="properties">プロパティ重視</option><option value="outliner">アウトライナー重視</option></select></div>
   <button onclick="newDocument()">新規</button>
   <button onclick="$('importFile').click()">開く</button>
     <button onclick="$('imageFile').click()">🖼 画像追加</button>
@@ -197,6 +297,12 @@ stroke-dasharray:5 3;pointer-events:none}
 
 <div class="workspace">
 <aside class="toolbar">
+  <div class="toolbar-mode-switch" aria-label="モード切り替え">
+    <button id="objectModeBtn" class="active" title="オブジェクトモード (Tab)" onclick="setMode('OBJECT')">OBJ</button>
+    <button id="editModeBtn" title="編集モード (Tab)" onclick="setMode('EDIT')">EDIT</button>
+    <span id="modeBadge" class="mode-badge">Object</span>
+  </div>
+  <div class="tool-separator"></div>
   <button class="tool active" data-tool="select" title="選択 V">↖</button>
   <button class="tool" data-tool="node" title="ノード N">◇</button>
   <div class="tool-separator"></div>
@@ -277,12 +383,20 @@ stroke-dasharray:5 3;pointer-events:none}
   </div>
   <div class="section">
     <h3>塗り</h3>
-    <div class="field"><label>色</label><input type="color" id="fill" value="#4c9ffe"><button onclick="setFill('none')">なし</button></div>
+    <div class="field"><label>色</label><input type="color" id="fill" value="#4c9ffe"></div>
+    <div class="field fill-mode-controls" role="group" aria-label="塗りの有無">
+      <button type="button" id="fillEnabledBtn" class="active" onclick="setFillEnabled(true)">色あり</button>
+      <button type="button" id="fillDisabledBtn" onclick="setFillEnabled(false)">色なし</button>
+    </div>
     <div class="field"><label>透明度</label><input type="range" id="opacity" min="0" max="100" value="100"><span id="opacityValue">100%</span></div>
   </div>
   <div class="section">
     <h3>線</h3>
-    <div class="field"><label>色</label><input type="color" id="stroke" value="#202124"><button onclick="setStroke('none')">なし</button></div>
+    <div class="field"><label>色</label><input type="color" id="stroke" value="#202124"></div>
+    <div class="field fill-mode-controls" role="group" aria-label="線の有無">
+      <button type="button" id="strokeEnabledBtn" class="active" onclick="setStrokeEnabled(true)">色あり</button>
+      <button type="button" id="strokeDisabledBtn" onclick="setStrokeEnabled(false)">色なし</button>
+    </div>
     <div class="field"><label>太さ</label><input type="number" id="strokeWidth" min="0" max="100" value="3"></div>
     <div class="field"><label>端</label><select id="linecap"><option value="butt">平ら</option><option value="round">丸</option><option value="square">四角</option></select></div>
     <div class="field"><label>接合</label><select id="linejoin"><option value="miter">角</option><option value="round">丸</option><option value="bevel">斜め</option></select></div>
@@ -302,7 +416,7 @@ stroke-dasharray:5 3;pointer-events:none}
     <div class="field"><label>Y</label><input type="number" id="posY"></div>
     <div class="field"><label>幅</label><input type="number" id="objW"></div>
     <div class="field"><label>高さ</label><input type="number" id="objH"></div>
-    <button class="full" onclick="applyGeometry()">適用</button>
+    <div class="modifier-empty">数値を変更すると、キャンバスへ自動で反映されます。</div>
   </div>
   <div class="section">
     <h3>オブジェクト操作</h3>
@@ -335,6 +449,12 @@ stroke-dasharray:5 3;pointer-events:none}
 
   <div id="layers" class="layers" style="margin-top:8px"></div>
 </div>
+  <div class="section" id="modifierPanel">
+    <h3>モディファイアー</h3>
+    <div class="field"><label>追加</label><select id="modifierType"><option value="blur">ぼかし</option><option value="shadow">ドロップシャドウ</option><option value="grayscale">グレースケール</option><option value="hue">色相回転</option><option value="mirror">ミラー</option><option value="array">配列</option><option value="bevel">ベベル風</option><option value="outline">アウトライン</option></select></div>
+    <button class="full" type="button" onclick="addModifierFromPanel()">モディファイアーを追加</button>
+    <div id="modifierList" class="modifier-list"><div class="modifier-empty">オブジェクトを選択して追加してください。</div></div>
+  </div>
   <div class="section">
     <h3>ページ</h3>
     <div class="field"><label>幅</label><input id="pageW" type="number" value="900"></div>
@@ -346,8 +466,25 @@ stroke-dasharray:5 3;pointer-events:none}
 
 <div class="dock-splitter horizontal timeline-splitter" data-resize="timeline" title="タイムラインの高さを変更"></div>
 <section class="timeline" id="timeline" aria-label="タイムライン">
-  <div class="timeline-head"><strong>タイムライン</strong><button type="button" title="先頭フレーム">|◀</button><button type="button" title="再生" disabled>▶</button><button type="button" title="末尾フレーム">▶|</button><span style="margin-left:auto;color:#969ba4">フレーム 1 / 250</span></div>
-  <div class="timeline-track"><div class="timeline-ruler"><span>1</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span><span>150</span><span>175</span><span>200</span><span>225</span><span>250</span></div><div class="timeline-playhead"></div></div>
+  <div class="timeline-head">
+    <strong>タイムライン</strong>
+    <button type="button" onclick="goToFrame(1)" title="先頭フレーム">|◀</button>
+    <button type="button" id="playTimelineBtn" onclick="toggleTimelinePlayback()" title="再生">▶</button>
+    <button type="button" onclick="goToFrame(TIMELINE_END)" title="末尾フレーム">▶|</button>
+    <button type="button" onclick="addTimelineKeyframe()" title="選択中のオブジェクトにキーフレームを追加">◆ キー追加</button>
+    <button type="button" onclick="deleteTimelineKeyframe()" title="現在フレームのキーフレームを削除">− キー</button>
+    <button type="button" onclick="duplicateTimelineFrame()" title="現在のフレームのキーを次のフレームへ複製">フレーム複製</button>
+    <button type="button" onclick="exportAnimatedSVG()" title="アニメーションSVGを書き出す">アニメSVG保存</button>
+    <label class="timeline-setting">FPS <input id="timelineFPS" type="number" min="1" max="60" value="24"></label>
+    <label class="timeline-setting">補間 <select id="timelineEasing"><option value="linear">リニア</option><option value="ease-in">ゆっくり開始</option><option value="ease-out">ゆっくり停止</option><option value="ease-in-out">滑らか</option></select></label>
+    <label class="timeline-setting">終了 <input id="timelineEnd" type="number" min="2" max="2000" value="250"></label>
+    <span id="timelineFrameLabel" class="timeline-frame-label">フレーム 1 / 250</span>
+  </div>
+  <div class="timeline-scroll" id="timelineScroll"><div class="timeline-content" id="timelineContent">
+    <div class="timeline-ruler" id="timelineRuler"></div>
+    <div class="timeline-rows" id="timelineRows"></div>
+    <div class="timeline-playhead" id="timelinePlayhead"></div>
+  </div></div>
 </section>
 <div id="objectMenu" role="menu">
   <button type="button" data-action="rename">名前を変更</button>
@@ -376,6 +513,7 @@ let tool="select",selected=null,drawing=false,preview=null;
 let editorMode="OBJECT";
 let selectedObjects=new Set();
 let start=null,points=[],drag=null,nodeDrag=null;
+let marqueeRect=null,marqueeBase=new Set();
 let zoom=1,history=[],historyIndex=-1,objectCounter=0;
 let textPosition=null;
 let activeLayer=null;
@@ -517,6 +655,7 @@ function restore(state) {
 
   objects.innerHTML = s.objects;
   defs.innerHTML = s.defs;
+  objects.querySelectorAll("[data-modifiers]").forEach(applyModifiers);
 
   layers = s.layers || [];
   activeLayer = s.activeLayer || null;
@@ -580,7 +719,7 @@ function make(tag,attrs={}){
   el.dataset.name=tag+" "+objectCounter;
   el.dataset.layer=activeLayer||"default";
   el.setAttribute("fill",tag==="path"?"none":$("fill").value);
-  el.setAttribute("stroke",$("stroke").value);
+  el.setAttribute("stroke",strokeEnabled?$("stroke").value:"none");
   el.setAttribute("stroke-width",$("strokeWidth").value);
   el.setAttribute("stroke-linecap",$("linecap").value);
   el.setAttribute("stroke-linejoin",$("linejoin").value);
@@ -705,6 +844,7 @@ function select(el){
   }
   refreshSelectionVisuals();
   updateLayers();updateProperties();
+  if(typeof renderTimeline==="function")renderTimeline();
 }
 function toggleMultiSelection(el){
   if(!el)return;
@@ -713,6 +853,7 @@ function toggleMultiSelection(el){
   selected=[...selectedObjects].at(-1)||null;
   refreshSelectionVisuals();
   updateLayers();updateProperties();
+  if(typeof renderTimeline==="function")renderTimeline();
 }
 function getSelectedObjects(){
   return [...selectedObjects].filter(el=>el&&el.isConnected);
@@ -721,7 +862,7 @@ function setMode(mode){
   editorMode=mode;
   $("objectModeBtn").classList.toggle("active",mode==="OBJECT");
   $("editModeBtn").classList.toggle("active",mode==="EDIT");
-  $("modeBadge").textContent=mode==="OBJECT"?"Object Mode":"Edit Mode";
+  $("modeBadge").textContent=mode==="OBJECT"?"Object":"Edit";
   if(mode==="EDIT"){
     setTool("select");
     const target=selected;
@@ -738,6 +879,17 @@ function setMode(mode){
     $("statusText").textContent="オブジェクトモード：Shift+クリックで複数選択";
   }
 }
+// キャンバス表示領域が変わった場合もノード表示を再配置
+let nodeOverlayRAF=0;
+function scheduleNodeOverlayRefresh(){
+  if(editorMode!=="EDIT"||!selected||selected.tagName.toLowerCase()!=="path")return;
+  cancelAnimationFrame(nodeOverlayRAF);
+  nodeOverlayRAF=requestAnimationFrame(()=>drawNodes(selected));
+}
+new ResizeObserver(scheduleNodeOverlayRefresh).observe($("canvasArea"));
+$("canvasArea").addEventListener("scroll",scheduleNodeOverlayRefresh);
+window.addEventListener("resize",scheduleNodeOverlayRefresh);
+
 function updateProperties(){
   if(!selected){
     $("objectName").value="";
@@ -746,13 +898,22 @@ function updateProperties(){
   $("objectName").value = selectedObjects.size>1 ? `${selectedObjects.size}個を選択中` : (selected.dataset.name || selected.tagName);
   const fill=selected.getAttribute("fill");
   const stroke=selected.getAttribute("stroke");
+  if(typeof fillEnabled!=="undefined"){
+    fillEnabled=fill!=="none";
+    updateFillModeButtons();
+  }
   if(fill&&fill.startsWith("#"))$("fill").value=fill;
   if(stroke&&stroke.startsWith("#"))$("stroke").value=stroke;
+  if(typeof strokeEnabled!=="undefined"){
+    strokeEnabled=stroke!=="none";
+    updateStrokeModeButtons();
+  }
+  renderModifierList();
   $("strokeWidth").value=selected.getAttribute("stroke-width")||0;
   $("opacity").value=Number(selected.getAttribute("opacity")||1)*100;
   $("opacityValue").textContent=$("opacity").value+"%";
   try{
-    const b=selected.getBBox();
+    const b=getRootBBox(selected);
     $("posX").value=Math.round(b.x);
     $("posY").value=Math.round(b.y);
     $("objW").value=Math.round(b.width);
@@ -760,11 +921,12 @@ function updateProperties(){
   }catch{}
 }
 function applyPaletteColor(color){
-  const targets=getSelectedObjects();
-  if(!targets.length){$("fill").value=color;return;}
-  targets.forEach(el=>el.setAttribute("fill",color));
   $("fill").value=color;
-  snapshot();
+  fillEnabled=true;
+  const targets=getSelectedObjects();
+  targets.forEach(el=>el.setAttribute("fill",color));
+  updateFillModeButtons();
+  if(targets.length)snapshot();
 }
 $("paletteGrid").addEventListener("click",e=>{
   const swatch=e.target.closest("[data-color]");
@@ -772,13 +934,55 @@ $("paletteGrid").addEventListener("click",e=>{
   applyPaletteColor(swatch.dataset.color);
   $("paletteGrid").querySelectorAll(".palette-color").forEach(b=>b.classList.toggle("active",b===swatch));
 });
-function setFill(v){const targets=getSelectedObjects();targets.forEach(el=>el.setAttribute("fill",v));if(targets.length)snapshot()}
-function setStroke(v){const targets=getSelectedObjects();targets.forEach(el=>el.setAttribute("stroke",v));if(targets.length)snapshot()}
+let fillEnabled=true;
+function updateFillModeButtons(){
+  $("fillEnabledBtn")?.classList.toggle("active",fillEnabled);
+  $("fillDisabledBtn")?.classList.toggle("active",!fillEnabled);
+}
+function setFillEnabled(enabled){
+  fillEnabled=!!enabled;
+  const value=fillEnabled?$("fill").value:"none";
+  const targets=getSelectedObjects();
+  targets.forEach(el=>el.setAttribute("fill",value));
+  updateFillModeButtons();
+  if(targets.length)snapshot();
+}
+function setFill(v){
+  if(v==="none"){setFillEnabled(false);return;}
+  if(v)$("fill").value=v;
+  setFillEnabled(true);
+}
+let strokeEnabled=true;
+function updateStrokeModeButtons(){
+  $("strokeEnabledBtn")?.classList.toggle("active",strokeEnabled);
+  $("strokeDisabledBtn")?.classList.toggle("active",!strokeEnabled);
+}
+function setStrokeEnabled(enabled){
+  strokeEnabled=!!enabled;
+  const value=strokeEnabled?$("stroke").value:"none";
+  const targets=getSelectedObjects();
+  targets.forEach(el=>el.setAttribute("stroke",value));
+  updateStrokeModeButtons();
+  if(targets.length)snapshot();
+}
+function setStroke(v){
+  if(v==="none"){setStrokeEnabled(false);return;}
+  if(v)$("stroke").value=v;
+  setStrokeEnabled(true);
+}
+updateFillModeButtons();
+updateStrokeModeButtons();
 
 ["fill","stroke","strokeWidth","opacity","linecap","linejoin","dash","arrowStart","arrowEnd"].forEach(id=>{
   $(id).addEventListener("input",()=>{
+    if(id==="fill" && fillEnabled){
+      const targets=getSelectedObjects();
+      targets.forEach(el=>{if(el.getAttribute("fill")!=="none")el.setAttribute("fill",$("fill").value);});
+      if(targets.length)snapshot();
+    }
     const targets=getSelectedObjects();
     if(!targets.length)return;
+    if(id==="stroke" && !strokeEnabled)return;
     const attrs={
       fill:"fill",stroke:"stroke",strokeWidth:"stroke-width",
       opacity:"opacity",linecap:"stroke-linecap",linejoin:"stroke-linejoin",
@@ -822,7 +1026,18 @@ function pointerDown(e){
       const targets=getSelectedObjects();
       drag={type:"object",x:p.x,y:p.y,items:targets.map(el=>({el,oldTransform:el.getAttribute("transform")||""}))};
       svg.setPointerCapture(e.pointerId);
-    }else if(!e.shiftKey){select(null);}
+    }else if(editorMode==="OBJECT"){
+      // 空白からドラッグすると範囲選択。Shift併用時は既存選択に追加する。
+      if(!e.shiftKey)select(null);
+      marqueeBase=e.shiftKey?new Set(selectedObjects):new Set();
+      marqueeRect=document.createElementNS(svg.namespaceURI,"rect");
+      marqueeRect.setAttribute("id","selectionBox");
+      marqueeRect.setAttribute("x",p.x);marqueeRect.setAttribute("y",p.y);
+      marqueeRect.setAttribute("width",0);marqueeRect.setAttribute("height",0);
+      overlay.appendChild(marqueeRect);
+      drag={type:"marquee",x:p.x,y:p.y};
+      svg.setPointerCapture(e.pointerId);
+    }
     return;
   }
 
@@ -874,6 +1089,8 @@ function pointerDown(e){
     appendToActiveLayer(preview);
   }else if(tool==="rect"||tool==="ellipse"||tool==="star"){
     preview=make(tool==="rect"?"rect":tool==="ellipse"?"ellipse":"path");
+    // 星は閉じた図形として扱い、塗りの有無を反映する
+    if(tool==="star") preview.setAttribute("fill",fillEnabled?$("fill").value:"none");
     appendToActiveLayer(preview);
   }
   svg.setPointerCapture(e.pointerId);
@@ -881,6 +1098,13 @@ function pointerDown(e){
 
 function pointerMove(e){
   const p=point(e);
+  if(drag&&drag.type==="marquee"){
+    const x=Math.min(drag.x,p.x),y=Math.min(drag.y,p.y);
+    marqueeRect?.setAttribute("x",x);marqueeRect?.setAttribute("y",y);
+    marqueeRect?.setAttribute("width",Math.abs(p.x-drag.x));
+    marqueeRect?.setAttribute("height",Math.abs(p.y-drag.y));
+    return;
+  }
   if(drag&&drag.type==="object"){
     const dx=p.x-drag.x,dy=p.y-drag.y;
     drag.items.forEach(item=>item.el.setAttribute("transform",`translate(${dx} ${dy}) ${item.oldTransform}`.trim()));
@@ -923,6 +1147,26 @@ function pointerMove(e){
   }
 }
 function pointerUp(){
+  if(drag&&drag.type==="marquee"){
+    const box=marqueeRect?{
+      x:Number(marqueeRect.getAttribute("x")),y:Number(marqueeRect.getAttribute("y")),
+      width:Number(marqueeRect.getAttribute("width")),height:Number(marqueeRect.getAttribute("height"))
+    }:null;
+    marqueeRect?.remove();marqueeRect=null;
+    if(box&&(box.width>2||box.height>2)){
+      const candidates=[...objects.children].filter(el=>el.dataset.layerRoot==="true").flatMap(root=>[...root.children]);
+      const flat=candidates.length?candidates:[...objects.children];
+      const found=flat.filter(el=>el.dataset.id&&el.dataset.guide!=="true").filter(el=>{
+        try{const b=getRootBBox(el);return b.x<=box.x+box.width&&b.x+b.width>=box.x&&b.y<=box.y+box.height&&b.y+b.height>=box.y;}catch{return false;}
+      });
+      selectedObjects=new Set([...marqueeBase,...found]);
+      selected=[...selectedObjects].at(-1)||null;
+      refreshSelectionVisuals();updateLayers();updateProperties();
+      if(typeof renderTimeline==="function")renderTimeline();
+      $("statusText").textContent=`${found.length}個のオブジェクトを範囲選択`;
+    }
+    drag=null;return;
+  }
   if(drag){drag=null;snapshot();return}
   if(nodeDrag){nodeDrag=null;snapshot();return}
   if(!drawing)return;
@@ -976,35 +1220,156 @@ function cancelPath(){
   if(preview){preview.remove();preview=null;points=[];drawing=false}
 }
 
+function pathNumberPairs(d){
+  const nums=(d.match(/[-+]?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?/g)||[]).map(Number);
+  const pairs=[];for(let i=0;i+1<nums.length;i+=2)pairs.push({x:nums[i],y:nums[i+1]});
+  return pairs;
+}
 function drawNodes(el){
-  overlay.innerHTML="";
+  overlay.replaceChildren();
   if(!el||el.tagName.toLowerCase()!=="path")return;
-  const d=el.getAttribute("d")||"";
-  const nums=d.match(/-?\d*\.?\d+/g)||[];
-  for(let i=0;i+1<nums.length;i+=2){
-    const c=document.createElementNS(svg.namespaceURI,"circle");
-    c.setAttribute("cx",nums[i]);c.setAttribute("cy",nums[i+1]);
-    c.setAttribute("r",5);c.setAttribute("class","node-handle");
-    c.dataset.node=i/2;
-    c.addEventListener("pointerdown",e=>{
-      e.stopPropagation();
-      nodeDrag={index:Number(c.dataset.node)};
-      svg.setPointerCapture(e.pointerId);
+  try{
+    const elementCTM=el.getScreenCTM(),svgCTM=svg.getScreenCTM();
+    if(!elementCTM||!svgCTM)return;
+    // パス自身や親グループのtransformを反映して、SVGルート座標へ変換する
+    const toSvg=svgCTM.inverse().multiply(elementCTM);
+    pathNumberPairs(el.getAttribute("d")||"").forEach((pt,i)=>{
+      const mapped=new DOMPoint(pt.x,pt.y).matrixTransform(toSvg);
+      const c=document.createElementNS(svg.namespaceURI,"circle");
+      c.setAttribute("cx",mapped.x);c.setAttribute("cy",mapped.y);
+      c.setAttribute("r",5);c.setAttribute("class","node-handle");
+      c.dataset.node=i;
+      c.addEventListener("pointerdown",e=>{
+        e.stopPropagation();e.preventDefault();
+        nodeDrag={index:i};
+        svg.setPointerCapture(e.pointerId);
+      });
+      overlay.append(c);
     });
-    overlay.append(c);
-  }
+  }catch(err){console.warn("ノード位置の変換に失敗しました",err)}
 }
 function moveNode(p){
   if(!selected||!nodeDrag)return;
-  const d=selected.getAttribute("d");
-  const nums=d.match(/-?\d*\.?\d+/g)||[];
-  const i=nodeDrag.index*2;
-  if(i+1>=nums.length)return;
-  nums[i]=p.x;nums[i+1]=p.y;
-  let index=0;
-  const newD=d.replace(/-?\d*\.?\d+/g,()=>nums[index++]);
-  selected.setAttribute("d",newD);
-  drawNodes(selected);
+  const d=selected.getAttribute("d")||"";
+  const pairs=pathNumberPairs(d),pt=pairs[nodeDrag.index];
+  if(!pt)return;
+  try{
+    // ポインターはSVGルート座標なので、パスのローカル座標に戻してから更新
+    const toLocal=selected.getScreenCTM().inverse().multiply(svg.getScreenCTM());
+    const local=new DOMPoint(p.x,p.y).matrixTransform(toLocal);
+    const nums=d.match(/[-+]?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?/g)||[];
+    const replacements=[];for(let i=0;i+1<nums.length;i+=2)replacements.push([i,local.x],[i+1,local.y]);
+    let index=0;
+    const newD=d.replace(/[-+]?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?/g,()=>{
+      const pairIndex=Math.floor(index/2);const axis=index%2;index++;
+      if(pairIndex!==nodeDrag.index)return nums[index-1];
+      return String(axis===0?local.x:local.y);
+    });
+    selected.setAttribute("d",newD);
+    drawNodes(selected);
+  }catch(err){console.warn("ノード編集に失敗しました",err)}
+}
+
+/* =====================================
+   Blender風メニュー / モディファイアー
+===================================== */
+function closeAppMenus(){
+  document.querySelectorAll(".app-menu.open").forEach(menu=>menu.classList.remove("open"));
+  document.querySelectorAll(".app-menu-trigger").forEach(btn=>btn.setAttribute("aria-expanded","false"));
+}
+document.querySelectorAll(".app-menu-trigger").forEach(btn=>btn.addEventListener("click",e=>{
+  e.stopPropagation();
+  const target=$(btn.dataset.menu),wasOpen=target.classList.contains("open");
+  closeAppMenus();
+  if(!wasOpen){
+    const rect=btn.getBoundingClientRect();
+    target.style.left=Math.max(6,Math.min(rect.left,window.innerWidth-200))+"px";
+    target.style.top=Math.min(rect.bottom+3,window.innerHeight-80)+"px";
+    target.classList.add("open");btn.setAttribute("aria-expanded","true");
+  }
+}));
+// 横スクロール中にメニューがずれないよう、開いているメニューは閉じる
+$(".topbar")?.addEventListener("scroll",closeAppMenus,{passive:true});
+document.addEventListener("click",e=>{if(!e.target.closest(".app-menu-wrap"))closeAppMenus();});
+const MODIFIER_NAMES={blur:"ぼかし",shadow:"ドロップシャドウ",grayscale:"グレースケール",hue:"色相回転",mirror:"ミラー",array:"配列",bevel:"ベベル風",outline:"アウトライン"};
+function getModifiers(el){try{return JSON.parse(el?.dataset.modifiers||"[]");}catch{return [];}}
+function clearModifierClones(el){
+  const id=el?.dataset.id;if(!id||!el.parentNode)return;
+  [...el.parentNode.children].filter(n=>n.dataset?.modifierOwner===id).forEach(n=>n.remove());
+}
+function applyModifiers(el){
+  if(!el)return;
+  const mods=getModifiers(el),id=el.dataset.id||("modifier-"+Math.random().toString(36).slice(2));el.dataset.id=id;
+  clearModifierClones(el);
+  const filterId="filter-"+id.replace(/[^a-zA-Z0-9_-]/g,"-");
+  let filter=defs.querySelector("#"+CSS.escape(filterId));if(filter)filter.remove();
+  const active=mods.filter(mod=>mod.enabled!==false);
+  if(active.some(m=>["blur","shadow","grayscale","hue","outline"].includes(m.type))){
+    filter=document.createElementNS(svg.namespaceURI,"filter");filter.id=filterId;filter.setAttribute("x","-80%");filter.setAttribute("y","-80%");filter.setAttribute("width","260%");filter.setAttribute("height","260%");
+    active.forEach(mod=>{
+      if(mod.type==="blur"){const f=document.createElementNS(svg.namespaceURI,"feGaussianBlur");f.setAttribute("stdDeviation",Math.max(0,Number(mod.value)||0));f.setAttribute("in","SourceGraphic");f.setAttribute("result","blur");filter.append(f);}
+      else if(mod.type==="shadow"){const f=document.createElementNS(svg.namespaceURI,"feDropShadow");f.setAttribute("dx",Number(mod.x)||3);f.setAttribute("dy",Number(mod.y)||3);f.setAttribute("stdDeviation",Math.max(0,Number(mod.value)||3));f.setAttribute("flood-color",mod.color||"#000000");f.setAttribute("flood-opacity",mod.opacity??"0.45");filter.append(f);}
+      else if(mod.type==="grayscale"){const f=document.createElementNS(svg.namespaceURI,"feColorMatrix");f.setAttribute("type","saturate");f.setAttribute("values","0");filter.append(f);}
+      else if(mod.type==="hue"){const f=document.createElementNS(svg.namespaceURI,"feColorMatrix");f.setAttribute("type","hueRotate");f.setAttribute("values",Number(mod.value)||0);filter.append(f);}
+      else if(mod.type==="outline"){const f=document.createElementNS(svg.namespaceURI,"feMorphology");f.setAttribute("in","SourceAlpha");f.setAttribute("operator","dilate");f.setAttribute("radius",Math.max(0.2,Number(mod.value)||1));f.setAttribute("result","expanded");const merge=document.createElementNS(svg.namespaceURI,"feMerge");const n1=document.createElementNS(svg.namespaceURI,"feMergeNode");n1.setAttribute("in","expanded");const n2=document.createElementNS(svg.namespaceURI,"feMergeNode");n2.setAttribute("in","SourceGraphic");merge.append(n1,n2);filter.append(f,merge);}
+    });
+    defs.append(filter);el.setAttribute("filter",`url(#${filterId})`);
+  }else el.removeAttribute("filter");
+  // 形状系モディファイアーは編集可能な元オブジェクトを残し、表示用コピーを追加する
+  const bbox=(()=>{try{return el.getBBox();}catch{return {x:0,y:0,width:0,height:0};}})();
+  active.forEach(mod=>{
+    if(mod.type==="bevel"){
+      if(!el.dataset.baseLinejoin)el.dataset.baseLinejoin=el.getAttribute("stroke-linejoin")||"miter";
+      el.setAttribute("stroke-linejoin","round");
+      if(el.tagName.toLowerCase()==="rect"){if(el.dataset.baseRx===undefined)el.dataset.baseRx=el.getAttribute("rx")||"0";if(el.dataset.baseRy===undefined)el.dataset.baseRy=el.getAttribute("ry")||"0";const r=Math.max(0,Number(mod.value)||8);el.setAttribute("rx",String(r));el.setAttribute("ry",String(r));}
+    }
+    if(mod.type==="mirror"||mod.type==="array"){
+      const count=mod.type==="mirror"?1:Math.max(1,Math.min(20,Number(mod.count)||3));
+      for(let i=1;i<=count;i++){
+        const wrapper=document.createElementNS(svg.namespaceURI,"g");wrapper.dataset.modifierOwner=id;wrapper.style.pointerEvents="none";wrapper.setAttribute("aria-hidden","true");
+        const clone=el.cloneNode(true);clone.removeAttribute("id");clone.removeAttribute("filter");clone.removeAttribute("data-modifiers");clone.removeAttribute("data-id");clone.removeAttribute("data-name");clone.removeAttribute("data-layer");clone.removeAttribute("data-selected");clone.removeAttribute("data-modifiers");
+        if(mod.type==="mirror"){
+          const axis=mod.axis||"x";
+          if(axis==="y")wrapper.setAttribute("transform",`translate(0 ${2*bbox.y+bbox.height}) scale(1 -1)`);
+          else if(axis==="both")wrapper.setAttribute("transform",`translate(${2*bbox.x+bbox.width} ${2*bbox.y+bbox.height}) scale(-1 -1)`);
+          else wrapper.setAttribute("transform",`translate(${2*bbox.x+bbox.width} 0) scale(-1 1)`);
+        } else {const dx=Number(mod.x)||24,dy=Number(mod.y)||0;wrapper.setAttribute("transform",`translate(${dx*i} ${dy*i})`);}
+        wrapper.append(clone);el.parentNode.insertBefore(wrapper,el.nextSibling);
+      }
+    }
+  });
+  if(!active.some(m=>m.type==="bevel")){
+    if(el.dataset.baseLinejoin){el.setAttribute("stroke-linejoin",el.dataset.baseLinejoin);delete el.dataset.baseLinejoin;}
+    if(el.tagName.toLowerCase()==="rect"){if(el.dataset.baseRx!==undefined){el.setAttribute("rx",el.dataset.baseRx);delete el.dataset.baseRx;}if(el.dataset.baseRy!==undefined){el.setAttribute("ry",el.dataset.baseRy);delete el.dataset.baseRy;}}
+  }
+}
+function addModifier(type){
+  const targets=getSelectedObjects().filter(el=>el.dataset.layerRoot!=="true"&&el.dataset.folder!=="true");
+  if(!targets.length){$("statusText").textContent="モディファイアーを追加するオブジェクトを選択してください";return;}
+  targets.forEach(el=>{const mods=getModifiers(el);mods.push({type,value:type==="blur"?3:type==="hue"?90:type==="bevel"?8:1,x:24,y:0,count:3,axis:"x",color:"#000000",opacity:0.45,enabled:true});el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});
+  renderModifierList();snapshot();
+}
+function addModifierFromPanel(){addModifier($("modifierType").value);}
+function updateModifier(index,key,value){getSelectedObjects().forEach(el=>{const mods=getModifiers(el);if(!mods[index])return;mods[index][key]=value;el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});renderModifierList();snapshot();}
+function removeModifier(index){getSelectedObjects().forEach(el=>{const mods=getModifiers(el);mods.splice(index,1);el.dataset.modifiers=JSON.stringify(mods);applyModifiers(el);});renderModifierList();snapshot();}
+function renderModifierList(){
+  const host=$("modifierList");if(!host)return;const targets=getSelectedObjects();
+  if(!targets.length){host.innerHTML='<div class="modifier-empty">オブジェクトを選択すると、追加した効果がここに表示されます。</div>';return;}
+  const mods=getModifiers(selected);if(!mods.length){host.innerHTML='<div class="modifier-empty">モディファイアーはありません。上から追加できます。</div>';return;}
+  host.innerHTML="";mods.forEach((mod,index)=>{
+    const card=document.createElement("div");card.className="modifier-card";const head=document.createElement("div");head.className="modifier-card-head";const title=document.createElement("strong");title.textContent=MODIFIER_NAMES[mod.type]||mod.type;
+    const toggle=document.createElement("button");toggle.textContent=mod.enabled===false?"無効":"有効";toggle.onclick=()=>updateModifier(index,"enabled",mod.enabled===false);const del=document.createElement("button");del.textContent="削除";del.onclick=()=>removeModifier(index);head.append(title,toggle,del);card.append(head);
+    const addRange=(label,key,min,max,step=1)=>{const row=document.createElement("div");row.className="field";const l=document.createElement("label");l.textContent=label;const input=document.createElement("input");input.type="range";input.min=min;input.max=max;input.step=step;input.value=mod[key]??0;input.oninput=()=>{const mods=getModifiers(selected);mods[index][key]=Number(input.value);selected.dataset.modifiers=JSON.stringify(mods);applyModifiers(selected);};input.onchange=()=>{renderModifierList();snapshot();};row.append(l,input);card.append(row);};
+    if(["blur","hue","bevel","outline"].includes(mod.type))addRange(mod.type==="blur"?"強さ":mod.type==="hue"?"角度":mod.type==="bevel"?"丸み":"太さ","value",0,mod.type==="hue"?360:20,1);
+    if(mod.type==="shadow")[["ぼかし","value",0,20],["X方向","x",-30,30],["Y方向","y",-30,30]].forEach(([n,k,min,max])=>{const row=document.createElement("div");row.className="field";const l=document.createElement("label");l.textContent=n;const input=document.createElement("input");input.type="number";input.min=min;input.max=max;input.value=mod[k]??0;input.onchange=()=>updateModifier(index,k,Number(input.value));row.append(l,input);card.append(row);});
+    if(mod.type==="array")[["複製数","count",1,20],["X間隔","x",-300,300],["Y間隔","y",-300,300]].forEach(([n,k,min,max])=>{const row=document.createElement("div");row.className="field";const l=document.createElement("label");l.textContent=n;const input=document.createElement("input");input.type="number";input.min=min;input.max=max;input.value=mod[k]??0;input.onchange=()=>updateModifier(index,k,Number(input.value));row.append(l,input);card.append(row);});
+    if(mod.type==="mirror"){const row=document.createElement("div");row.className="field";const l=document.createElement("label");l.textContent="反転軸";const sel=document.createElement("select");[["x","左右"],["y","上下"],["both","上下左右"]].forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;sel.append(o);});sel.value=mod.axis||"x";sel.onchange=()=>updateModifier(index,"axis",sel.value);row.append(l,sel);card.append(row);}
+    host.append(card);
+  });
+}
+function focusModifierPanel(){
+  switchDockTab("modifier");
+  const panel=$("modifierPanel");if(panel){panel.scrollIntoView({behavior:"smooth",block:"start"});panel.style.outline="1px solid #579bd7";setTimeout(()=>panel.style.outline="",900);}
 }
 
 /* =====================================
@@ -1033,8 +1398,67 @@ let menuTarget = null;
   [...dock.children].forEach(child=>{
     if(child!==heading && child!==folderSection) properties.append(child);
   });
+
+  // アウトライナー直下に、左側タブ＋右側設定パネルを構成
+  const layout=document.createElement("div");
+  layout.className="properties-layout";
+  const tabs=document.createElement("nav");
+  tabs.className="properties-tabs";
+  tabs.setAttribute("aria-label","プロパティカテゴリ");
+  const content=document.createElement("div");
+  content.className="properties-content";
+  const groups=[
+    {id:"object",label:"オブジェクト",icon:"▣",match:t=>t.includes("オブジェクト名")||t.includes("オブジェクト操作")},
+    {id:"style",label:"スタイル",icon:"◐",match:t=>t.includes("カラーパレット")||t==="塗り"||t==="線"||t.includes("グラデーション")},
+    {id:"transform",label:"変形",icon:"↗",match:t=>t.includes("位置・サイズ")},
+    {id:"modifier",label:"モディファイアー",icon:"◈",match:t=>t.includes("モディファイアー")},
+    {id:"page",label:"ページ",icon:"▤",match:t=>t==="ページ"}
+  ];
+  const panes={};
+  groups.forEach((group,index)=>{
+    const pane=document.createElement("div");
+    pane.className="properties-tab-pane";
+    pane.dataset.pane=group.id;
+    pane.hidden=index!==0;
+    panes[group.id]=pane;
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="properties-tab"+(index===0?" active":"");
+    button.dataset.tab=group.id;
+    button.title=group.label;
+    button.setAttribute("aria-label",group.label);
+    button.innerHTML=`<span class="tab-icon">${group.icon}</span><span class="tab-label">${group.label}</span>`;
+    button.addEventListener("click",()=>switchDockTab(group.id));
+    tabs.append(button);
+  });
+  const sections=[...properties.querySelectorAll(":scope > .section")];
+  sections.forEach(section=>{
+    const title=section.querySelector("h3")?.textContent.trim()||"";
+    const group=groups.find(item=>item.match(title))||groups[0];
+    panes[group.id].append(section);
+  });
+  groups.forEach(group=>content.append(panes[group.id]));
+  layout.append(tabs,content);
+  properties.append(layout);
   dock.replaceChildren(outliner,splitter,properties);
 })();
+
+function switchDockTab(id){
+  const layout=$("sidebar")?.querySelector(".properties-layout");
+  if(!layout)return;
+  layout.querySelectorAll(".properties-tab").forEach(button=>{
+    const active=button.dataset.tab===id;
+    button.classList.toggle("active",active);
+    button.setAttribute("aria-selected",String(active));
+  });
+  layout.querySelectorAll(".properties-tab-pane").forEach(pane=>pane.hidden=pane.dataset.pane!==id);
+  try{localStorage.setItem("inkescape_right_dock_tab",id);}catch{}
+}
+
+try{
+  const savedDockTab=localStorage.getItem("inkescape_right_dock_tab");
+  if(savedDockTab && ["object","style","transform","modifier","page"].includes(savedDockTab)) switchDockTab(savedDockTab);
+}catch{}
 
 /* =====================================
    Unity風ドックサイズ・レイアウトプリセット
@@ -1061,6 +1485,7 @@ function applyLayoutPreset(){
 (function restoreLayout(){
   try{const saved=JSON.parse(localStorage.getItem(LAYOUT_KEY)||"null");if(saved)setLayoutVars(saved);}catch{}
 })();
+$("layoutPreset").addEventListener("change",applyLayoutPreset);
 (function enableDockResizing(){
   let dragState=null;
   document.querySelectorAll(".dock-splitter[data-resize]").forEach(handle=>{
@@ -1222,6 +1647,7 @@ function updateLayers(){
     if(!dragged||dragged.dataset.layerRoot==="true"||dragged.parentNode===getActiveLayerGroup())return;
     getActiveLayerGroup().appendChild(dragged);select(dragged);updateLayers();snapshot();
   };
+  if(typeof renderTimeline==="function")renderTimeline();
 }
 function addLayer(){
   const count=[...objects.children].filter(el=>el.dataset.layerRoot==="true").length+1;
@@ -1328,18 +1754,47 @@ function moveOrder(direction){
   else parent.insertBefore(selected,parent.firstChild);
   updateLayers();snapshot();
 }
+// 要素の現在の表示位置・サイズをSVGルート座標で取得する
+function getRootBBox(el){
+  const b=el.getBBox();
+  const m=el.getCTM();
+  if(!m)return {x:b.x,y:b.y,width:b.width,height:b.height};
+  const pts=[
+    new DOMPoint(b.x,b.y).matrixTransform(m),
+    new DOMPoint(b.x+b.width,b.y).matrixTransform(m),
+    new DOMPoint(b.x,b.y+b.height).matrixTransform(m),
+    new DOMPoint(b.x+b.width,b.y+b.height).matrixTransform(m)
+  ];
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const x=Math.min(...xs),y=Math.min(...ys);
+  return {x,y,width:Math.max(...xs)-x,height:Math.max(...ys)-y};
+}
+let geometrySnapshotTimer=null;
 function applyGeometry(){
   if(!selected)return;
-  const b=selected.getBBox();
+  const vals=["posX","posY","objW","objH"].map(id=>$(id).value);
+  if(vals.some(v=>v===""||!Number.isFinite(Number(v))))return;
+  const b=getRootBBox(selected);
   const x=Number($("posX").value),y=Number($("posY").value);
   const w=Math.max(1,Number($("objW").value));
   const h=Math.max(1,Number($("objH").value));
-  const sx=w/(b.width||1),sy=h/(b.height||1);
-  const old=selected.getAttribute("transform")||"";
-  selected.setAttribute("transform",
-    `translate(${x-b.x*sx} ${y-b.y*sy}) scale(${sx} ${sy}) ${old}`.trim());
-  snapshot();
+  if(!b.width||!b.height)return;
+  // 親グループの変形を保ちながら、現在の表示範囲を指定値へ写像する
+  const rootMap=new DOMMatrix().translate(x,y).scale(w/b.width,h/b.height).translate(-b.x,-b.y);
+  const parentCTM=selected.parentElement?.getCTM?.()||svg.getCTM();
+  const elementCTM=selected.getCTM();
+  if(!parentCTM||!elementCTM)return;
+  const localMatrix=parentCTM.inverse().multiply(rootMap).multiply(elementCTM);
+  selected.setAttribute("transform",`matrix(${[localMatrix.a,localMatrix.b,localMatrix.c,localMatrix.d,localMatrix.e,localMatrix.f].join(" ")})`);
+  refreshSelectionVisuals?.();
+  clearTimeout(geometrySnapshotTimer);
+  geometrySnapshotTimer=setTimeout(()=>{snapshot();updateLayers();},250);
 }
+["posX","posY","objW","objH"].forEach(id=>{
+  const field=$(id);
+  field.addEventListener("input",applyGeometry);
+  field.addEventListener("change",()=>{applyGeometry();clearTimeout(geometrySnapshotTimer);snapshot();updateProperties();});
+});
 function applyGradient(){
   if(!selected)return;
   const id="gradient-"+Date.now();
@@ -1371,6 +1826,10 @@ function changeZoom(n){
 }
 function newDocument(){
   if(!confirm("現在の作品を消去しますか？"))return;
+  if(typeof stopTimelinePlayback==="function")stopTimelinePlayback();
+  if(typeof animationTracks!=="undefined")animationTracks={};
+  if(typeof saveAnimationTracks==="function")saveAnimationTracks();
+  if(typeof renderTimeline==="function")renderTimeline();
   objects.innerHTML="";layers=[];activeLayer=null;overlay.innerHTML="";defs.querySelectorAll("linearGradient").forEach(x=>x.remove());
   ensureLayerStructure();select(null);snapshot();
 }
@@ -1425,6 +1884,117 @@ function createText(){
   el.setAttribute("font-family","sans-serif");
   appendToActiveLayer(el);select(el);snapshot();closeText();
 }
+/* =====================================
+   Inkescape / Canva風アニメーションタイムライン
+===================================== */
+const TIMELINE_END=250,TIMELINE_SCALE=12;
+let timelineFrame=1,timelinePlaying=false,timelineTimer=null,animationTracks={};
+const TIMELINE_STORAGE_KEY="inkescape_animation_v2";
+function timelineEnd(){return Math.max(2,Math.min(2000,Number($("timelineEnd").value)||250));}
+function readTransformMatrix(el){try{const c=el.transform.baseVal.consolidate(),m=c?c.matrix:new DOMMatrix();return [m.a,m.b,m.c,m.d,m.e,m.f];}catch{return [1,0,0,1,0,0];}}
+function readAnimatedState(el){return {matrix:readTransformMatrix(el),opacity:Number(el.getAttribute("opacity")??1),fill:el.getAttribute("fill")||"none",stroke:el.getAttribute("stroke")||"none",strokeWidth:Number(el.getAttribute("stroke-width")||1)};}
+function saveAnimationTracks(){try{localStorage.setItem(TIMELINE_STORAGE_KEY,JSON.stringify(animationTracks));}catch(e){console.warn("タイムライン保存失敗",e);}}
+function addTimelineKeyframe(){
+  const targets=getSelectedObjects().filter(el=>el.dataset.layerRoot!=="true"&&el.dataset.folder!=="true");
+  if(!targets.length){$("statusText").textContent="キーフレームを追加するオブジェクトを選択してください";return;}
+  targets.forEach(el=>{const id=el.dataset.id;if(!animationTracks[id])animationTracks[id]={name:el.dataset.name||el.tagName.toLowerCase(),keys:{}};animationTracks[id].name=el.dataset.name||el.tagName.toLowerCase();animationTracks[id].keys[timelineFrame]=readAnimatedState(el);});
+  saveAnimationTracks();renderTimeline();$("statusText").textContent=`フレーム ${timelineFrame} にキーフレームを追加しました`;
+}
+function deleteTimelineKeyframe(){let removed=false;const targets=getSelectedObjects();
+  targets.forEach(el=>{const tr=animationTracks[el.dataset.id];if(tr?.keys?.[timelineFrame]){delete tr.keys[timelineFrame];removed=true;if(!Object.keys(tr.keys).length)delete animationTracks[el.dataset.id];}});
+  if(!removed)for(const [id,tr] of Object.entries(animationTracks)){if(tr.keys?.[timelineFrame]){delete tr.keys[timelineFrame];removed=true;if(!Object.keys(tr.keys).length)delete animationTracks[id];}}
+  saveAnimationTracks();renderTimeline();
+}
+function easeTimelineProgress(t){const mode=$("timelineEasing")?.value||"linear";if(mode==="ease-in")return t*t;if(mode==="ease-out")return 1-(1-t)*(1-t);if(mode==="ease-in-out")return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;return t;}
+function interpolateColor(a,b,t){
+  const parse=v=>{if(!/^#[0-9a-f]{6}$/i.test(v||""))return null;return [1,3,5].map(i=>parseInt(v.slice(i,i+2),16));};
+  const A=parse(a),B=parse(b);if(!A||!B)return t<1?a:b;return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("");
+}
+function applyTimelineFrame(frame){
+  for(const [id,track] of Object.entries(animationTracks)){
+    const el=findObjectById(id);if(!el)continue;
+    const entries=Object.entries(track.keys||{}).map(([f,v])=>({frame:Number(f),value:v})).sort((a,b)=>a.frame-b.frame);if(!entries.length)continue;
+    let before=entries[0],after=entries[entries.length-1];for(const item of entries){if(item.frame<=frame)before=item;if(item.frame>=frame){after=item;break;}}
+    const span=after.frame-before.frame,rawT=span?Math.max(0,Math.min(1,(frame-before.frame)/span)):0,t=easeTimelineProgress(rawT),A=before.value,B=after.value;
+    if(A.matrix&&B.matrix){const m=A.matrix.map((v,i)=>v+((B.matrix?.[i]??v)-v)*t);el.setAttribute("transform",`matrix(${m.join(" ")})`);}
+    el.setAttribute("opacity",String((A.opacity??1)+((B.opacity??A.opacity??1)-(A.opacity??1))*t));
+    if(A.fill!==undefined||B.fill!==undefined)el.setAttribute("fill",interpolateColor(A.fill||"none",B.fill||A.fill||"none",t));
+    if(A.stroke!==undefined||B.stroke!==undefined)el.setAttribute("stroke",interpolateColor(A.stroke||"none",B.stroke||A.stroke||"none",t));
+    if(A.strokeWidth!==undefined||B.strokeWidth!==undefined)el.setAttribute("stroke-width",String((A.strokeWidth??1)+((B.strokeWidth??A.strokeWidth??1)-(A.strokeWidth??1))*t));
+  }
+}
+function goToFrame(frame){
+  timelineFrame=Math.max(1,Math.min(timelineEnd(),Math.round(Number(frame)||1)));applyTimelineFrame(timelineFrame);
+  const x=180+(timelineFrame-1)*TIMELINE_SCALE;const playhead=$("timelinePlayhead");if(playhead)playhead.style.left=x+"px";
+  $("timelineFrameLabel").textContent=`フレーム ${timelineFrame} / ${timelineEnd()}`;
+  if(editorMode==="EDIT"&&selected?.tagName.toLowerCase()==="path")drawNodes(selected);
+}
+function duplicateTimelineFrame(){
+  const next=Math.min(timelineEnd(),timelineFrame+1);if(next===timelineFrame)return;
+  getSelectedObjects().forEach(el=>{const tr=animationTracks[el.dataset.id];if(tr?.keys?.[timelineFrame])tr.keys[next]=JSON.parse(JSON.stringify(tr.keys[timelineFrame]));});
+  saveAnimationTracks();goToFrame(next);renderTimeline();
+}
+function toggleTimelinePlayback(){if(timelinePlaying){stopTimelinePlayback();return;}timelinePlaying=true;$("playTimelineBtn").textContent="Ⅱ";$("playTimelineBtn").title="停止";const fps=Math.max(1,Math.min(60,Number($("timelineFPS").value)||24));timelineTimer=setInterval(()=>{if(timelineFrame>=timelineEnd())goToFrame(1);else goToFrame(timelineFrame+1);},1000/fps);}
+function stopTimelinePlayback(){timelinePlaying=false;clearInterval(timelineTimer);timelineTimer=null;$("playTimelineBtn").textContent="▶";$("playTimelineBtn").title="再生";}
+function moveTimelineKey(id,oldFrame,newFrame){const tr=animationTracks[id];if(!tr?.keys?.[oldFrame])return;newFrame=Math.max(1,Math.min(timelineEnd(),Math.round(newFrame)));if(newFrame!==Number(oldFrame)&&tr.keys[newFrame])return;tr.keys[newFrame]=tr.keys[oldFrame];delete tr.keys[oldFrame];saveAnimationTracks();renderTimeline();goToFrame(newFrame);}
+function renderTimeline(){
+  const end=timelineEnd(),ruler=$("timelineRuler"),rows=$("timelineRows"),content=$("timelineContent");content.style.width=(180+end*TIMELINE_SCALE+25)+"px";ruler.replaceChildren();rows.replaceChildren();
+  for(let f=1;f<=end;f+=5){const tick=document.createElement("span");tick.className="timeline-tick";tick.style.left=(180+(f-1)*TIMELINE_SCALE)+"px";tick.textContent=f;ruler.append(tick);}
+  ruler.onclick=e=>{const rect=content.getBoundingClientRect();goToFrame(Math.round((e.clientX-rect.left-180)/TIMELINE_SCALE)+1);};
+  const tracks=Object.entries(animationTracks).filter(([id])=>findObjectById(id));
+  if(!tracks.length){const empty=document.createElement("div");empty.className="timeline-empty";empty.textContent="オブジェクトを選択 → キー追加。タイムライン上の◆をドラッグしてタイミングを調整できます。";rows.append(empty);}
+  tracks.forEach(([id,track],index)=>{
+    const row=document.createElement("div");row.className="timeline-row";row.dataset.trackId=id;
+    const label=document.createElement("span");label.className="timeline-row-label";label.textContent="▸  "+(track.name||id);row.append(label);
+    const frames=Object.keys(track.keys||{}).map(Number).sort((a,b)=>a-b);
+    if(frames.length>1){const clip=document.createElement("div");clip.className="timeline-clip";clip.style.left=(180+(frames[0]-1)*TIMELINE_SCALE)+"px";clip.style.width=Math.max(18,(frames.at(-1)-frames[0])*TIMELINE_SCALE)+"px";row.append(clip);}
+    frames.forEach(frame=>{
+      const key=document.createElement("button");key.type="button";key.className="timeline-key";key.style.left=(180+(frame-1)*TIMELINE_SCALE+5)+"px";key.title=`${track.name||id} / ${frame}フレーム（ドラッグで移動）`;
+      key.addEventListener("click",e=>{e.stopPropagation();select(findObjectById(id));goToFrame(frame);});
+      key.addEventListener("pointerdown",e=>{
+        e.preventDefault();e.stopPropagation();key.classList.add("dragging");const startX=e.clientX;let moved=false;
+        const move=ev=>{if(Math.abs(ev.clientX-startX)>3)moved=true;if(moved){const rect=content.getBoundingClientRect();const f=Math.max(1,Math.min(end,Math.round((ev.clientX-rect.left-180)/TIMELINE_SCALE)+1));key.style.left=(180+(f-1)*TIMELINE_SCALE+5)+"px";}};
+        const up=ev=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);key.classList.remove("dragging");if(moved){const rect=content.getBoundingClientRect();const f=Math.max(1,Math.min(end,Math.round((ev.clientX-rect.left-180)/TIMELINE_SCALE)+1));moveTimelineKey(id,frame,f);}else{select(findObjectById(id));goToFrame(frame);}};
+        window.addEventListener("pointermove",move);window.addEventListener("pointerup",up,{once:true});
+      });row.append(key);
+    });
+    row.addEventListener("pointerdown",e=>{if(e.target.classList.contains("timeline-key"))return;const rect=content.getBoundingClientRect();goToFrame(Math.round((e.clientX-rect.left-180)/TIMELINE_SCALE)+1);});rows.append(row);
+  });
+  goToFrame(timelineFrame);
+}
+function exportAnimatedSVG(){
+  const clone=svg.cloneNode(true),fps=Math.max(1,Math.min(60,Number($("timelineFPS").value)||24)),duration=timelineEnd()/fps;
+  for(const [id,track] of Object.entries(animationTracks)){
+    const el=clone.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!el)continue;
+    const entries=Object.entries(track.keys||{}).map(([f,v])=>({frame:Number(f),value:v})).sort((a,b)=>a.frame-b.frame);if(entries.length<2)continue;
+    const addAnim=(attr,values,type)=>{
+      if(values.some(v=>v==null))return;
+      const a=document.createElementNS(svg.namespaceURI,"animate");a.setAttribute("attributeName",attr);if(type)a.setAttribute("type",type);
+      a.setAttribute("values",values.join(";"));a.setAttribute("keyTimes",values.map((_,i)=>((entries[i]?.frame??(i===0?1:timelineEnd()))-1)/Math.max(1,timelineEnd()-1)).map(v=>Math.max(0,Math.min(1,v)).toFixed(4)).join(";"));
+      a.setAttribute("dur",duration+"s");a.setAttribute("repeatCount","indefinite");a.setAttribute("calcMode","linear");el.append(a);
+    };
+    const props=[
+      ["transform",entries.map(x=>`matrix(${(x.value.matrix||[1,0,0,1,0,0]).join(" ")})`)],
+      ["opacity",entries.map(x=>String(x.value.opacity??1))],
+      ["fill",entries.map(x=>x.value.fill||"none")],
+      ["stroke",entries.map(x=>x.value.stroke||"none")],
+      ["stroke-width",entries.map(x=>String(x.value.strokeWidth??1))]
+    ];
+    props.forEach(([attr,values])=>{
+      // SMILのkeyTimesは0から1である必要があるため、端点を補完
+      const frames=entries.map(x=>x.frame),vals=[...values],times=frames.map(f=>(f-1)/Math.max(1,timelineEnd()-1));
+      if(times[0]>0){vals.unshift(vals[0]);times.unshift(0);}if(times.at(-1)<1){vals.push(vals.at(-1));times.push(1);}
+      const a=document.createElementNS(svg.namespaceURI,"animate");a.setAttribute("attributeName",attr);a.setAttribute("values",vals.join(";"));a.setAttribute("keyTimes",times.map(v=>v.toFixed(4)).join(";"));a.setAttribute("dur",duration+"s");a.setAttribute("repeatCount","indefinite");a.setAttribute("calcMode","linear");el.append(a);
+    });
+  }
+  const data=new XMLSerializer().serializeToString(clone),blob=new Blob([data],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="inkescape-animation.svg";a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$("statusText").textContent="アニメーションSVGを書き出しました";
+}
+$("timelineEnd").addEventListener("change",()=>{if(timelineFrame>timelineEnd())goToFrame(timelineEnd());renderTimeline();});
+$("timelineFPS").addEventListener("change",()=>{if(timelinePlaying){stopTimelinePlayback();toggleTimelinePlayback();}});
+$("timelineEasing").addEventListener("change",()=>goToFrame(timelineFrame));
+try{animationTracks=JSON.parse(localStorage.getItem(TIMELINE_STORAGE_KEY)||localStorage.getItem("inkescape_animation_v1")||"{}");}catch{animationTracks={};}
+renderTimeline();
+
 $("importFile").addEventListener("change",async e=>{
   const file=e.target.files[0];if(!file)return;
   try{
@@ -1446,7 +2016,10 @@ $("importFile").addEventListener("change",async e=>{
   e.target.value="";
 });
 window.addEventListener("keydown",e=>{
-  if(e.target.matches("input,textarea,select"))return;
+  if(e.key==="Tab"&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.target.matches("input,textarea,select,[contenteditable=true]")){
+    e.preventDefault();setMode(editorMode==="OBJECT"?"EDIT":"OBJECT");return;
+  }
+  if(e.target.matches("input,textarea,select,[contenteditable=true]"))return;
   if(e.ctrlKey||e.metaKey){
     if(e.key.toLowerCase()==="a"&&editorMode==="OBJECT"){
       e.preventDefault();
