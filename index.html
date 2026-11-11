@@ -8,7 +8,7 @@
 <link rel="icon" href="inkescape.png" sizes="16x16" type="image/png" />   
 <style>
 :root {
-  --tool-width:48px;--right-width:310px;--outliner-height:280px;--timeline-height:112px;--splitter-size:5px;
+  --tool-width:112px;--right-width:310px;--outliner-height:280px;--timeline-height:112px;--splitter-size:5px;
   --bg:#202124;--panel:#292a2d;--panel2:#34363a;
   --line:#45474c;--text:#e8eaed;--muted:#aeb3bb;
   --blue:#4c9ffe;--accent:#287edb;
@@ -26,15 +26,16 @@ button.active{background:#175ea8;border-color:var(--blue)}
 .topbar{height:44px;background:var(--panel);border-bottom:1px solid var(--line);
 display:flex;align-items:center;gap:5px;padding:4px 8px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;overscroll-behavior-x:contain;} 
 .brand{font-weight:bold;font-size:16px;margin-right:12px;white-space:nowrap;position:sticky;left:0;z-index:20;flex:0 0 auto;background:var(--panel);padding:4px 8px 4px 0;align-self:stretch;display:flex;align-items:center;}
-.workspace{display:grid;grid-template-columns:48px 1fr 265px;height:calc(100vh - 44px)}
+.workspace{display:grid;grid-template-columns:var(--tool-width) 1fr 265px;height:calc(100vh - 44px)}
 .toolbar{background:var(--panel);border-right:1px solid var(--line);
 display:flex;flex-direction:column;align-items:center;padding:6px 4px;gap:5px}
-.tool{width:37px;height:37px;padding:0;font-size:17px;flex-shrink:0}
+.tool{width:37px;height:37px;padding:0;font-size:17px;flex:0 0 37px}
 /* 左ツールバー最上部に独立したモード切り替え */
-.toolbar{overflow:hidden;}
-.toolbar-mode-switch{width:100%;flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:1px 0 3px;}
-.toolbar-mode-switch button{width:100%;min-width:0;padding:6px 1px;font-size:10px;font-weight:bold;line-height:1.2;white-space:normal;}
-.toolbar-mode-switch .mode-badge{display:block;margin:0;text-align:center;font-size:9px;line-height:1.2;overflow-wrap:anywhere;}
+.toolbar{overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;}
+.toolbar-mode-switch{position:sticky;top:-6px;z-index:10;background:var(--panel);}
+.toolbar-mode-switch{width:100%;flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:2px 0 8px;border-bottom:1px solid var(--line);margin-bottom:3px;}
+.toolbar-mode-switch button{width:100%;min-width:0;min-height:44px;padding:8px 7px;font-size:12px;font-weight:bold;line-height:1.25;white-space:nowrap;border-radius:5px;}
+.toolbar-mode-switch .mode-badge{display:block;margin:1px 0 0;text-align:center;font-size:10px;line-height:1.2;overflow-wrap:anywhere;color:var(--muted);}
 .toolbar>.tool-separator{flex:0 0 1px;}
 
 .tool-separator{height:1px;background:var(--line);width:30px;margin:3px}
@@ -135,13 +136,13 @@ border:1px solid var(--line);color:white}
 .layer-name-input{flex:1;min-width:0;width:0;background:#17181a;color:#fff;border:1px solid var(--blue);border-radius:3px;padding:4px;}
 .layer-menu{width:25px;min-width:25px;padding:2px!important;font-size:17px;line-height:18px;}
 @media(max-width:800px){
-.workspace{grid-template-columns:42px var(--splitter-size) minmax(0,1fr) var(--splitter-size) 260px;height:calc(100vh - 44px - var(--timeline-height) - var(--splitter-size));}
+.workspace{grid-template-columns:84px var(--splitter-size) minmax(0,1fr) var(--splitter-size) 260px;height:calc(100vh - 44px - var(--timeline-height) - var(--splitter-size));}
 .sidebar{display:grid;grid-template-rows:minmax(100px,var(--outliner-height)) var(--splitter-size) minmax(100px,1fr);}
 .timeline{height:90px;}
 .brand{font-size:13px;margin-right:3px}
 .topbar{gap:2px}
 }
-@media(max-width:560px){.workspace{grid-template-columns:40px 0 minmax(0,1fr) 0 0;} .sidebar,.dock-splitter.vertical,.dock-splitter.horizontal:not(.timeline-splitter){display:none!important;} .timeline{height:var(--timeline-height);}}
+@media(max-width:560px){.workspace{grid-template-columns:76px 0 minmax(0,1fr) 0 0;} .sidebar,.dock-splitter.vertical,.dock-splitter.horizontal:not(.timeline-splitter){display:none!important;} .timeline{height:var(--timeline-height);}}
 
 /* フォルダ・階層表示 */
 
@@ -1475,10 +1476,10 @@ function setLayoutVars(values){
 }
 function applyLayoutPreset(){
   const presets={
-    standard:{"--tool-width":"48px","--right-width":"310px","--outliner-height":"280px","--timeline-height":"112px"},
-    canvas:{"--tool-width":"42px","--right-width":"245px","--outliner-height":"180px","--timeline-height":"72px"},
-    properties:{"--tool-width":"48px","--right-width":"390px","--outliner-height":"190px","--timeline-height":"96px"},
-    outliner:{"--tool-width":"48px","--right-width":"350px","--outliner-height":"420px","--timeline-height":"88px"}
+    standard:{"--tool-width":"72px","--right-width":"310px","--outliner-height":"280px","--timeline-height":"112px"},
+    canvas:{"--tool-width":"64px","--right-width":"245px","--outliner-height":"180px","--timeline-height":"72px"},
+    properties:{"--tool-width":"72px","--right-width":"390px","--outliner-height":"190px","--timeline-height":"96px"},
+    outliner:{"--tool-width":"72px","--right-width":"350px","--outliner-height":"420px","--timeline-height":"88px"}
   };
   setLayoutVars(presets[$("layoutPreset").value]||presets.standard);
 }
