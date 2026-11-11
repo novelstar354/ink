@@ -74,12 +74,47 @@ border:1px solid var(--line);color:white}
 stroke-dasharray:5 3;pointer-events:none}
 .node-handle{fill:white;stroke:#1688ff;stroke-width:2}
 .node-handle.active{fill:#1688ff}
+/* Blender風ワークスペース */
+.workspace{height:calc(100vh - 44px - 112px);grid-template-columns:48px minmax(0,1fr) 310px;}
+.sidebar{padding:0;display:grid;grid-template-rows:minmax(180px,42%) minmax(0,1fr);overflow:hidden;gap:0;background:#252629;}
+.outliner-panel{min-height:0;overflow:auto;border-bottom:1px solid #111;background:#292a2d;padding:9px;}
+.outliner-heading,.properties-heading{height:27px;display:flex;align-items:center;justify-content:space-between;font-weight:bold;color:#d8dbe0;margin-bottom:7px;}
+.properties-panel{min-height:0;overflow:auto;padding:10px;background:#292a2d;}
+.properties-panel .panel-title{display:none;}
+.properties-panel .section:first-of-type{border-top:0;padding-top:3px;}
+.timeline{height:112px;background:#252629;border-top:1px solid #111;display:flex;flex-direction:column;color:#c5c8ce;}
+.timeline-head{height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid #414247;}
+.timeline-track{position:relative;flex:1;overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0,transparent 49px,#3b3d42 50px);}
+.timeline-ruler{height:25px;border-bottom:1px solid #3b3d42;display:flex;justify-content:space-around;color:#8e949e;font-size:11px;padding-top:5px;}
+.timeline-playhead{position:absolute;left:28%;top:0;bottom:0;width:1px;background:#e6a23c;}
+.timeline-playhead:before{content:"";position:absolute;top:0;left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:7px solid #e6a23c;}
+#objectMenu{position:fixed;z-index:1000;display:none;min-width:150px;padding:5px;background:#303238;border:1px solid #555963;border-radius:6px;box-shadow:0 8px 24px #0009;}
+#objectMenu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:8px;border-radius:4px;}
+#objectMenu button:hover{background:#454a54;}
+.mode-switch{display:flex;align-items:center;gap:4px;margin-left:8px;padding-left:9px;border-left:1px solid var(--line);white-space:nowrap;}
+.mode-switch button{min-width:94px;}
+.mode-switch button.active{background:#245b8e;border-color:#579bd7;}
+.palette-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px;}
+.palette-color{height:27px;min-width:0;padding:0;border:1px solid #737780;border-radius:4px;position:relative;}
+.palette-color:hover{outline:2px solid var(--blue);outline-offset:1px;}
+.palette-color.active{outline:2px solid #fff;outline-offset:1px;}
+.palette-hint{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.5;}
+.layer.multi-selected{border-color:#78b7f5;background:#203b54;}
+#objects .selected-object{filter:drop-shadow(0 0 2px #1688ff); }
+.mode-badge{font-size:11px;color:#aeb3bb;margin-left:5px;}
+.layer{min-height:31px;}
+.layer-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;}
+.layer-name-input{flex:1;min-width:0;width:0;background:#17181a;color:#fff;border:1px solid var(--blue);border-radius:3px;padding:4px;}
+.layer-menu{width:25px;min-width:25px;padding:2px!important;font-size:17px;line-height:18px;}
 @media(max-width:800px){
-.workspace{grid-template-columns:43px 1fr}
-.sidebar{display:none}
+.workspace{grid-template-columns:42px minmax(0,1fr) 260px;height:calc(100vh - 44px - 90px);}
+.sidebar{display:grid;grid-template-rows:40% 60%;}
+.timeline{height:90px;}
 .brand{font-size:13px;margin-right:3px}
 .topbar{gap:2px}
 }
+@media(max-width:560px){.workspace{grid-template-columns:40px minmax(0,1fr);} .sidebar{display:none;} .timeline{height:76px;}}
+
 /* フォルダ・階層表示 */
 
 .layer.folder {
@@ -120,6 +155,11 @@ stroke-dasharray:5 3;pointer-events:none}
 <body>
 <header class="topbar">
   <div class="brand">✦ Inkescape</div>
+  <div class="mode-switch" aria-label="編集モード">
+    <button id="objectModeBtn" class="active" onclick="setMode('OBJECT')">オブジェクト</button>
+    <button id="editModeBtn" onclick="setMode('EDIT')">編集モード</button>
+    <span id="modeBadge" class="mode-badge">Object Mode</span>
+  </div>
   <button onclick="newDocument()">新規</button>
   <button onclick="$('importFile').click()">開く</button>
     <button onclick="$('imageFile').click()">🖼 画像追加</button>
@@ -186,7 +226,7 @@ stroke-dasharray:5 3;pointer-events:none}
   </div>
 </main>
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="panel-title">オブジェクト設定</div>
     <div class="section">
   <h3>オブジェクト名</h3>
@@ -195,6 +235,28 @@ stroke-dasharray:5 3;pointer-events:none}
     <input type="text" id="objectName" placeholder="オブジェクト名">
   </div>
 </div>
+  <div class="section">
+    <h3>カラーパレット</h3>
+    <div class="palette-grid" id="paletteGrid">
+      <button class="palette-color" style="background:#ffffff" data-color="#ffffff" title="ホワイト"></button>
+      <button class="palette-color" style="background:#d9dde3" data-color="#d9dde3" title="ライトグレー"></button>
+      <button class="palette-color" style="background:#858b96" data-color="#858b96" title="グレー"></button>
+      <button class="palette-color" style="background:#292d34" data-color="#292d34" title="チャコール"></button>
+      <button class="palette-color" style="background:#111827" data-color="#111827" title="ネイビー"></button>
+      <button class="palette-color" style="background:#000000" data-color="#000000" title="ブラック"></button>
+      <button class="palette-color" style="background:#e85d5d" data-color="#e85d5d" title="レッド"></button>
+      <button class="palette-color" style="background:#ed9850" data-color="#ed9850" title="オレンジ"></button>
+      <button class="palette-color" style="background:#e8c85a" data-color="#e8c85a" title="イエロー"></button>
+      <button class="palette-color" style="background:#65ad78" data-color="#65ad78" title="グリーン"></button>
+      <button class="palette-color" style="background:#4c9ffe" data-color="#4c9ffe" title="ブルー"></button>
+      <button class="palette-color" style="background:#9b78d1" data-color="#9b78d1" title="パープル"></button>
+      <button class="palette-color" style="background:#e88eb5" data-color="#e88eb5" title="ピンク"></button>
+      <button class="palette-color" style="background:#8cc7c1" data-color="#8cc7c1" title="ミント"></button>
+      <button class="palette-color" style="background:#a6b86b" data-color="#a6b86b" title="オリーブ"></button>
+      <button class="palette-color" style="background:#b88768" data-color="#b88768" title="ブラウン"></button>
+    </div>
+    <div class="palette-hint">クリックすると選択中のオブジェクトの塗り色に適用されます。</div>
+  </div>
   <div class="section">
     <h3>塗り</h3>
     <div class="field"><label>色</label><input type="color" id="fill" value="#4c9ffe"><button onclick="setFill('none')">なし</button></div>
@@ -264,6 +326,16 @@ stroke-dasharray:5 3;pointer-events:none}
 </aside>
 </div>
 
+<section class="timeline" aria-label="タイムライン">
+  <div class="timeline-head"><strong>タイムライン</strong><button type="button" title="先頭フレーム">|◀</button><button type="button" title="再生" disabled>▶</button><button type="button" title="末尾フレーム">▶|</button><span style="margin-left:auto;color:#969ba4">フレーム 1 / 250</span></div>
+  <div class="timeline-track"><div class="timeline-ruler"><span>1</span><span>25</span><span>50</span><span>75</span><span>100</span><span>125</span><span>150</span><span>175</span><span>200</span><span>225</span><span>250</span></div><div class="timeline-playhead"></div></div>
+</section>
+<div id="objectMenu" role="menu">
+  <button type="button" data-action="rename">名前を変更</button>
+  <button type="button" data-action="duplicate">複製</button>
+  <button type="button" data-action="delete">削除</button>
+</div>
+
 <div id="textDialog">
   <div class="dialog">
     <b>テキストを入力</b>
@@ -282,6 +354,8 @@ const $=id=>document.getElementById(id);
 const svg=$("svg"),objects=$("objects"),defs=$("defs"),overlay=$("overlay");
 
 let tool="select",selected=null,drawing=false,preview=null;
+let editorMode="OBJECT";
+let selectedObjects=new Set();
 let start=null,points=[],drag=null,nodeDrag=null;
 let zoom=1,history=[],historyIndex=-1,objectCounter=0;
 let textPosition=null;
@@ -385,6 +459,8 @@ function clearDrawing() {
   if (!confirm("キャンバスをクリアしますか？")) return;
 
   objects.innerHTML = "";
+  layers = [];
+  activeLayer = null;
   selected = null;
   preview = null;
   points = [];
@@ -401,9 +477,6 @@ function clearDrawing() {
   $("statusText").textContent = "キャンバスをクリアしました";
 }
 
-$("clearCanvas").addEventListener("click", clearDrawing);
-
-// クリアボタン
 $("clearCanvas").addEventListener("click", clearDrawing);
 function snapshot(){
   const state=JSON.stringify({
@@ -429,6 +502,8 @@ function restore(state) {
   activeLayer = s.activeLayer || null;
 
   selected = null;
+  selectedObjects.clear();
+  refreshSelectionVisuals();
 
   updateLayers();
   updateProperties();
@@ -572,18 +647,56 @@ $("imageFile").addEventListener("change", async (e) => {
 
   e.target.value = "";
 });
+function refreshSelectionVisuals(){
+  objects.querySelectorAll("[data-id]").forEach(el=>{
+    el.classList.toggle("selected-object",selectedObjects.has(el));
+  });
+}
 function select(el){
-  if(selected)selected.classList.remove("selected-object");
-  selected=el;
-  if(el)el.classList.add("selected-object");
+  selectedObjects.clear();
+  selected=el||null;
+  if(selected)selectedObjects.add(selected);
+  refreshSelectionVisuals();
+  updateLayers();updateProperties();
+}
+function toggleMultiSelection(el){
+  if(!el)return;
+  if(selectedObjects.has(el))selectedObjects.delete(el);
+  else selectedObjects.add(el);
+  selected=[...selectedObjects].at(-1)||null;
+  refreshSelectionVisuals();
   updateLayers();updateProperties();
 }
 function getSelectedObjects(){
-  return selected?[selected]:[];
+  return [...selectedObjects].filter(el=>el&&el.isConnected);
+}
+function setMode(mode){
+  editorMode=mode;
+  $("objectModeBtn").classList.toggle("active",mode==="OBJECT");
+  $("editModeBtn").classList.toggle("active",mode==="EDIT");
+  $("modeBadge").textContent=mode==="OBJECT"?"Object Mode":"Edit Mode";
+  if(mode==="EDIT"){
+    setTool("select");
+    const target=selected;
+    if(target&&target.tagName.toLowerCase()==="path"){
+      drawNodes(target);
+      $("statusText").textContent="編集モード：ノードをドラッグ";
+    }else{
+      overlay.innerHTML="";
+      $("statusText").textContent="編集モード：パスを選択してください";
+    }
+  }else{
+    setTool("select");
+    overlay.innerHTML="";
+    $("statusText").textContent="オブジェクトモード：Shift+クリックで複数選択";
+  }
 }
 function updateProperties(){
-  if(!selected)return;
-    $("objectName").value = selected.dataset.name || selected.tagName;
+  if(!selected){
+    $("objectName").value="";
+    return;
+  }
+  $("objectName").value = selectedObjects.size>1 ? `${selectedObjects.size}個を選択中` : (selected.dataset.name || selected.tagName);
   const fill=selected.getAttribute("fill");
   const stroke=selected.getAttribute("stroke");
   if(fill&&fill.startsWith("#"))$("fill").value=fill;
@@ -599,12 +712,26 @@ function updateProperties(){
     $("objH").value=Math.round(b.height);
   }catch{}
 }
-function setFill(v){if(selected){selected.setAttribute("fill",v);snapshot()}}
-function setStroke(v){if(selected){selected.setAttribute("stroke",v);snapshot()}}
+function applyPaletteColor(color){
+  const targets=getSelectedObjects();
+  if(!targets.length){$("fill").value=color;return;}
+  targets.forEach(el=>el.setAttribute("fill",color));
+  $("fill").value=color;
+  snapshot();
+}
+$("paletteGrid").addEventListener("click",e=>{
+  const swatch=e.target.closest("[data-color]");
+  if(!swatch)return;
+  applyPaletteColor(swatch.dataset.color);
+  $("paletteGrid").querySelectorAll(".palette-color").forEach(b=>b.classList.toggle("active",b===swatch));
+});
+function setFill(v){const targets=getSelectedObjects();targets.forEach(el=>el.setAttribute("fill",v));if(targets.length)snapshot()}
+function setStroke(v){const targets=getSelectedObjects();targets.forEach(el=>el.setAttribute("stroke",v));if(targets.length)snapshot()}
 
 ["fill","stroke","strokeWidth","opacity","linecap","linejoin","dash","arrowStart","arrowEnd"].forEach(id=>{
   $(id).addEventListener("input",()=>{
-    if(!selected)return;
+    const targets=getSelectedObjects();
+    if(!targets.length)return;
     const attrs={
       fill:"fill",stroke:"stroke",strokeWidth:"stroke-width",
       opacity:"opacity",linecap:"stroke-linecap",linejoin:"stroke-linejoin",
@@ -615,8 +742,10 @@ function setStroke(v){if(selected){selected.setAttribute("stroke",v);snapshot()}
       v=Number(v)/100;
       $("opacityValue").textContent=$(id).value+"%";
     }
-    if(v==="")selected.removeAttribute(attrs[id]);
-    else selected.setAttribute(attrs[id],v);
+    targets.forEach(el=>{
+      if(v==="")el.removeAttribute(attrs[id]);
+      else el.setAttribute(attrs[id],v);
+    });
     snapshot();
   });
 });
@@ -631,12 +760,22 @@ function pointerDown(e){
 
   if(tool==="select"){
     if(target&&objects.contains(target)){
-      select(target);
-      const b=target.getBBox();
-      drag={type:"object",x:p.x,y:p.y,baseX:b.x,baseY:b.y,
-        oldTransform:target.getAttribute("transform")||""};
+      if(editorMode==="EDIT"){
+        select(target);
+        if(target.tagName.toLowerCase()==="path")drawNodes(target);
+        else $("statusText").textContent="編集モードではパスを選択してください";
+        return;
+      }
+      if(e.shiftKey){
+        toggleMultiSelection(target);
+        if(!selectedObjects.has(target))return;
+      }else if(!selectedObjects.has(target)||selectedObjects.size>1){
+        select(target);
+      }
+      const targets=getSelectedObjects();
+      drag={type:"object",x:p.x,y:p.y,items:targets.map(el=>({el,oldTransform:el.getAttribute("transform")||""}))};
       svg.setPointerCapture(e.pointerId);
-    }else select(null);
+    }else if(!e.shiftKey){select(null);}
     return;
   }
 
@@ -695,10 +834,9 @@ function pointerDown(e){
 
 function pointerMove(e){
   const p=point(e);
-  if(drag&&drag.type==="object"&&selected){
+  if(drag&&drag.type==="object"){
     const dx=p.x-drag.x,dy=p.y-drag.y;
-    selected.setAttribute("transform",
-      `translate(${dx} ${dy}) ${drag.oldTransform}`.trim());
+    drag.items.forEach(item=>item.el.setAttribute("transform",`translate(${dx} ${dy}) ${item.oldTransform}`.trim()));
     return;
   }
   if(nodeDrag&&selected){
@@ -823,225 +961,165 @@ function moveNode(p){
 }
 
 /* =====================================
-   Inkescape 階層型オブジェクト一覧
+   Blender風アウトライナー
 ===================================== */
+const objectMenu = $("objectMenu");
+let menuTarget = null;
 
-function updateLayers() {
-  const root = $("layers");
-  root.innerHTML = "";
+// 右側をアウトライナー（上）とプロパティ（下）に分割
+(function setupRightDock(){
+  const dock = $("sidebar");
+  const heading = dock.querySelector(".panel-title");
+  const folderSection = [...dock.querySelectorAll(".section")]
+    .find(section => section.querySelector("h3")?.textContent.includes("オブジェクト・フォルダ"));
+  const outliner = document.createElement("section");
+  outliner.className = "outliner-panel";
+  outliner.innerHTML = '<div class="outliner-heading"><span>アウトライナー</span><span style="color:#8f96a1;font-size:11px">シーン</span></div>';
+  if(folderSection) outliner.append(folderSection);
+  const properties = document.createElement("section");
+  properties.className = "properties-panel";
+  if(heading) properties.append(heading);
+  [...dock.children].forEach(child=>{
+    if(child!==heading && child!==folderSection) properties.append(child);
+  });
+  dock.replaceChildren(outliner,properties);
+})();
 
-  // IDからオブジェクトを探す
-  function findObjectById(id) {
-    return [...objects.querySelectorAll("[data-id]")]
-      .find(el => el.dataset.id === id);
-  }
-
-  // フォルダへの移動
-  function moveIntoFolder(dragged, folder) {
-    if (!dragged || !folder) return;
-
-    // 自分自身には入れられない
-    if (dragged === folder) return;
-
-    // 自分の子孫フォルダには入れられない
-    if (dragged.contains(folder)) return;
-
-    folder.appendChild(dragged);
-
-    // 開いた状態にする
-    folder.dataset.collapsed = "false";
-
-    select(dragged);
+function findObjectById(id) {
+  return [...objects.querySelectorAll("[data-id]")].find(el=>el.dataset.id===id) || null;
+}
+function renameObject(el){
+  if(!el)return;
+  const row=[...$("layers").querySelectorAll(".layer")].find(r=>r.dataset.objectId===el.dataset.id);
+  const name=row?.querySelector(".layer-name");
+  if(!name)return;
+  const input=document.createElement("input");
+  input.className="layer-name-input";
+  input.value=el.dataset.name||el.tagName.toLowerCase();
+  name.replaceWith(input);
+  input.focus();input.select();
+  let finished=false;
+  const finish=save=>{
+    if(finished)return;finished=true;
+    const value=input.value.trim();
+    if(save&&value){el.dataset.name=value;}
     updateLayers();
-    snapshot();
+    if(save&&value)snapshot();
+  };
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){e.preventDefault();finish(true);}
+    if(e.key==="Escape"){e.preventDefault();finish(false);}
+    e.stopPropagation();
+  });
+  input.addEventListener("blur",()=>finish(true));
+}
+function closeObjectMenu(){objectMenu.style.display="none";menuTarget=null;}
+function openObjectMenu(button,el){
+  menuTarget=el;
+  const rect=button.getBoundingClientRect();
+  objectMenu.style.display="block";
+  const width=objectMenu.offsetWidth,height=objectMenu.offsetHeight;
+  objectMenu.style.left=Math.max(6,Math.min(innerWidth-width,rect.right-width))+"px";
+  objectMenu.style.top=Math.max(6,Math.min(innerHeight-height,rect.bottom+3))+"px";
+}
+objectMenu.addEventListener("click",e=>{
+  const action=e.target.closest("button")?.dataset.action;
+  const el=menuTarget;
+  closeObjectMenu();
+  if(!el||!action)return;
+  if(action==="rename"){renameObject(el);return;}
+  select(el);
+  if(action==="duplicate"){duplicateSelected();return;}
+  if(action==="delete"){
+    el.remove();
+    if(selected===el||(selected&&el.contains(selected)))select(null);
+    updateLayers();snapshot();
   }
+});
+document.addEventListener("pointerdown",e=>{
+  if(objectMenu.style.display!=="none"&&!objectMenu.contains(e.target))closeObjectMenu();
+});
+window.addEventListener("resize",closeObjectMenu);
 
-  // 階層を再帰的に表示
-  function renderItems(parent, container) {
-    [...parent.children].reverse().forEach(el => {
-      if (!el.dataset.id) return;
-      if (el.dataset.guide === "true") return;
-
-      const isFolder = el.dataset.folder === "true";
-
-      const row = document.createElement("div");
-
-      row.className = "layer";
-
-      if (isFolder) {
-        row.classList.add("folder");
-      }
-
-      if (el === selected) {
-        row.classList.add("selected");
-      }
-
-      // ドラッグ可能
-      row.draggable = true;
-
-      row.addEventListener("dragstart", e => {
-        e.dataTransfer.setData(
-          "text/plain",
-          el.dataset.id
-        );
-
-        e.dataTransfer.effectAllowed = "move";
-        row.classList.add("dragging");
+function updateLayers(){
+  const root=$("layers");
+  root.innerHTML="";
+  function moveIntoFolder(dragged,folder){
+    if(!dragged||!folder||dragged===folder||dragged.contains(folder))return;
+    folder.appendChild(dragged);
+    folder.dataset.collapsed="false";
+    select(dragged);updateLayers();snapshot();
+  }
+  function renderItems(parent,container){
+    [...parent.children].reverse().forEach(el=>{
+      if(!el.dataset.id||el.dataset.guide==="true")return;
+      const isFolder=el.dataset.folder==="true";
+      const isGroup=el.tagName.toLowerCase()==="g";
+      const hasTreeChildren=isGroup&&[...el.children].some(child=>child.dataset.id);
+      const row=document.createElement("div");
+      row.className="layer"+(isFolder?" folder":"")+(selectedObjects.has(el)?" selected multi-selected":"");
+      row.dataset.objectId=el.dataset.id;
+      row.draggable=true;
+      row.addEventListener("dragstart",e=>{
+        e.dataTransfer.setData("text/plain",el.dataset.id);
+        e.dataTransfer.effectAllowed="move";row.classList.add("dragging");
       });
-
-      row.addEventListener("dragend", () => {
+      row.addEventListener("dragend",()=>{
         row.classList.remove("dragging");
-
-        document.querySelectorAll(".drop-target")
-          .forEach(x => x.classList.remove("drop-target"));
+        document.querySelectorAll(".drop-target").forEach(x=>x.classList.remove("drop-target"));
       });
-
-      // フォルダへのドロップ
-      if (isFolder) {
-        row.addEventListener("dragover", e => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          row.classList.add("drop-target");
-          e.dataTransfer.dropEffect = "move";
-        });
-
-        row.addEventListener("dragleave", e => {
-          if (!row.contains(e.relatedTarget)) {
-            row.classList.remove("drop-target");
-          }
-        });
-
-        row.addEventListener("drop", e => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          row.classList.remove("drop-target");
-
-          const id = e.dataTransfer.getData("text/plain");
-          const dragged = findObjectById(id);
-
-          moveIntoFolder(dragged, el);
+      if(isFolder){
+        row.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();row.classList.add("drop-target");e.dataTransfer.dropEffect="move";});
+        row.addEventListener("dragleave",e=>{if(!row.contains(e.relatedTarget))row.classList.remove("drop-target");});
+        row.addEventListener("drop",e=>{
+          e.preventDefault();e.stopPropagation();row.classList.remove("drop-target");
+          moveIntoFolder(findObjectById(e.dataTransfer.getData("text/plain")),el);
         });
       }
-
-      // フォルダ開閉ボタン
-      if (isFolder) {
-        const toggle = document.createElement("button");
-
-        toggle.className = "folder-toggle";
-
-        const collapsed = el.dataset.collapsed === "true";
-
-        toggle.textContent = collapsed ? "▸" : "▾";
-        toggle.title = collapsed ? "フォルダを開く" : "フォルダを閉じる";
-
-        toggle.onclick = () => {
-          el.dataset.collapsed =
-            el.dataset.collapsed === "true" ? "false" : "true";
-
-          updateLayers();
-          snapshot();
-        };
-
+      if(isFolder){
+        const toggle=document.createElement("button");
+        toggle.className="folder-toggle";
+        const collapsed=el.dataset.collapsed==="true";
+        toggle.textContent=collapsed?"▸":"▾";
+        toggle.title=collapsed?"フォルダを開く":"フォルダを閉じる";
+        toggle.onclick=()=>{el.dataset.collapsed=collapsed?"false":"true";updateLayers();snapshot();};
         row.append(toggle);
-
-      } else {
-        const spacer = document.createElement("span");
-        spacer.style.width = "25px";
-        row.append(spacer);
+      }else{
+        const spacer=document.createElement("span");spacer.style.width="25px";spacer.style.flexShrink="0";row.append(spacer);
       }
-
-      // 表示・非表示
-      const eye = document.createElement("button");
-
-      eye.textContent =
-        el.style.display === "none" ? "○" : "◉";
-
-      eye.title = "表示・非表示";
-
-      eye.onclick = () => {
-        el.style.display =
-          el.style.display === "none" ? "" : "none";
-
-        updateLayers();
-        snapshot();
-      };
-
-      // 名前
-      const name = document.createElement("span");
-
-      name.className = "layer-name";
-
-      name.textContent =
-        (isFolder ? "📁 " : "") +
-        (el.dataset.name || el.tagName);
-
-      name.onclick = () => select(el);
-
-      // 削除
-      const del = document.createElement("button");
-
-      del.textContent = "×";
-      del.title = "削除";
-
-      del.onclick = () => {
-        el.remove();
-
-        if (selected === el || (selected && el.contains(selected))) {
-          select(null);
-        }
-
-        updateLayers();
-        snapshot();
-      };
-
-      row.append(eye, name, del);
+      const eye=document.createElement("button");
+      eye.textContent=el.style.display==="none"?"○":"◉";eye.title="表示・非表示";
+      eye.onclick=()=>{el.style.display=el.style.display==="none"?"":"none";updateLayers();snapshot();};
+      const name=document.createElement("span");
+      name.className="layer-name";
+      name.textContent=(isFolder?"▰ ":isGroup?"▱ ":"◇ ")+(el.dataset.name||el.tagName.toLowerCase());
+      name.title="ダブルクリックで名前を変更";
+      name.onclick=e=>{if(editorMode==="OBJECT"&&e.shiftKey)toggleMultiSelection(el);else select(el);};
+      name.ondblclick=e=>{e.stopPropagation();select(el);renameObject(el);};
+      const menu=document.createElement("button");
+      menu.className="layer-menu";menu.textContent="⋮";menu.title="オブジェクトメニュー";
+      menu.onclick=e=>{e.stopPropagation();openObjectMenu(menu,el);};
+      row.append(eye,name,menu);
       container.append(row);
-
-      // フォルダ内のオブジェクト
-      if (isFolder) {
-        const children = document.createElement("div");
-
-        children.className = "layer-children";
-
-        if (el.dataset.collapsed === "true") {
-          children.style.display = "none";
-        }
-
+      if(isFolder||hasTreeChildren){
+        const children=document.createElement("div");children.className="layer-children";
+        const collapsed=isFolder&&el.dataset.collapsed==="true";
+        if(collapsed)children.style.display="none";
         container.append(children);
-
-        renderItems(el, children);
+        renderItems(el,children);
       }
     });
   }
-
-  renderItems(objects, root);
-
-  // 一覧の空白部分にドロップすると最上位へ戻す
-  root.addEventListener("dragover", e => {
-    if (e.target.closest(".layer.folder")) return;
-
+  renderItems(objects,root);
+  // 一覧の空白にドロップしたらフォルダの外（最上位）へ戻す
+  root.ondragover=e=>{if(e.target.closest(".layer.folder"))return;e.preventDefault();e.dataTransfer.dropEffect="move";};
+  root.ondrop=e=>{
+    if(e.target.closest(".layer.folder"))return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  });
-
-  root.addEventListener("drop", e => {
-    if (e.target.closest(".layer.folder")) return;
-
-    e.preventDefault();
-
-    const id = e.dataTransfer.getData("text/plain");
-    const dragged = findObjectById(id);
-
-    if (!dragged || dragged.parentNode === objects) return;
-
-    objects.appendChild(dragged);
-
-    select(dragged);
-    updateLayers();
-    snapshot();
-  });
+    const dragged=findObjectById(e.dataTransfer.getData("text/plain"));
+    if(!dragged||dragged.parentNode===objects)return;
+    objects.appendChild(dragged);select(dragged);updateLayers();snapshot();
+  };
 }
 function addLayer(){
   const id="layer-"+Date.now();
@@ -1109,8 +1187,12 @@ function alignSelected(mode){
   snapshot();
 }
 function deleteSelected(){
-  if(!selected)return;
-  selected.remove();select(null);snapshot();
+  const targets=getSelectedObjects();
+  if(!targets.length)return;
+  // 親グループとその子が同時選択されている場合は親だけ削除する
+  const topLevel=targets.filter(el=>!targets.some(other=>other!==el&&other.contains(el)));
+  topLevel.forEach(el=>el.remove());
+  select(null);snapshot();
 }
 function duplicateSelected(){
   if(!selected)return;
@@ -1161,6 +1243,7 @@ function resizePage(){
   svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
   $("stage").style.width=w+"px";
   $("stage").style.height=h+"px";
+  snapshot();
 }
 function changeZoom(n){
   zoom=Math.max(.2,Math.min(3,zoom+n));
@@ -1244,6 +1327,13 @@ $("importFile").addEventListener("change",async e=>{
 window.addEventListener("keydown",e=>{
   if(e.target.matches("input,textarea,select"))return;
   if(e.ctrlKey||e.metaKey){
+    if(e.key.toLowerCase()==="a"&&editorMode==="OBJECT"){
+      e.preventDefault();
+      selectedObjects=new Set([...objects.children].filter(el=>el.dataset.id&&el.dataset.guide!=="true"));
+      selected=[...selectedObjects].at(-1)||null;
+      refreshSelectionVisuals();updateLayers();updateProperties();
+      return;
+    }
     if(e.key.toLowerCase()==="z"){e.preventDefault();e.shiftKey?redo():undo()}
     if(e.key.toLowerCase()==="y"){e.preventDefault();redo()}
     if(e.key.toLowerCase()==="s"){e.preventDefault();saveSVG()}
@@ -1256,6 +1346,7 @@ window.addEventListener("keydown",e=>{
   if(e.key==="Escape")cancelPath();
 });
 const restored = loadDrawing();
+setMode("OBJECT");
 
 if (!restored) {
   updateLayers();
